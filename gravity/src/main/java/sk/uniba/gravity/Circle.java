@@ -18,13 +18,6 @@ public class Circle {
 		this(new Vector2D(centerX, centerY), radius);
 	}
 
-	public void draw(Graphics2D g) {
-		int size = (int) (radius * 2);
-		int x = (int) (center.getX() - radius);
-		int y = (int) (center.getY() - radius);
-		g.fillOval(x, y, size, size);
-	}
-
 	public Vector2D getCenter() {
 		return center;
 	}

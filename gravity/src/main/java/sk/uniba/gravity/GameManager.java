@@ -17,7 +17,7 @@ public class GameManager {
 	private static boolean syncRenders = true;
 
 	/** last time FPS was recorded */
-	private double fpsRecorded;
+	private long fpsRecorded;
 
 	/**
 	 * last recorded FPS
@@ -31,13 +31,15 @@ public class GameManager {
 	private int height;
 
 	private boolean fullscreen;
+	
+	private double gameSpeed = 1;
 
 	private JFrame window = new JFrame();
 
 	/**
-	 * desired duration of one game loop
+	 * desired duration of one game loop in miliseconds
 	 */
-	private double deltaTime = 1000 / (float) DESIRED_FPS;
+	private double deltaTime = 1_000d / DESIRED_FPS;
 
 	private Canvas canvas;
 
@@ -49,7 +51,7 @@ public class GameManager {
 	}
 
 	/**
-	 * if @param flag is true: - game rate is not constant - skip updates when
+	 * if @param flag is true: - game rate is not constant - ommit updates when
 	 * logic is too far ahead of graphics - more fluent gameplay
 	 */
 	public void syncUpdates(boolean flag) {
@@ -90,11 +92,12 @@ public class GameManager {
 	public void run() {
 		setup();
 		canvas.init(this);
-		double nextTime = getTime();
+		long nextTime = getTime();
+		long lastTime = getTime();
 		int skippedFrames = 0;
 		int maxSkippedFrames = DESIRED_FPS / MIN_FPS;
 		while (true) {
-			double currTime = getTime();
+			long currTime = getTime();
 			if (syncUpdates) {
 				// remove gap between logic and graphics
 				if ((currTime - nextTime) > MAX_LAG_MS) {
@@ -102,19 +105,22 @@ public class GameManager {
 				}
 			}
 			if (currTime >= nextTime) {
+				double delta = (currTime - lastTime) * gameSpeed;
+				canvas.update((int) delta);
+				lastTime = currTime;
 				nextTime += deltaTime;
-				canvas.update();
-				updateFps();
-
+				
 				if (syncRenders) {
 					// render extra frames if fps if too low
 					if ((currTime < nextTime) || skippedFrames > maxSkippedFrames) {
+						updateFps();
 						canvas.render();
 						skippedFrames = 0;
 					} else {
 						skippedFrames++;
 					}
 				} else if (currTime < nextTime) {
+					updateFps();
 					canvas.render();
 				}
 
@@ -131,9 +137,16 @@ public class GameManager {
 		}
 
 	}
+	
+	/**
+	 * @param speed multiplier, 1 is for realtime
+	 */
+	public void setGameSpeed(double speed) {
+		this.gameSpeed = speed;
+	}
 
 	public void updateFps() {
-		if (getTime() - fpsRecorded > 1000) {
+		if (getTime() - fpsRecorded > 1_000) {
 			fpsRecorded = getTime();
 			fps = fpsCounter;
 			fpsCounter = 0;
@@ -148,7 +161,7 @@ public class GameManager {
 	/**
 	 * @return current time in miliseconds
 	 */
-	public double getTime() {
+	public long getTime() {
 		return System.nanoTime() / 1_000_000;
 	}
 }

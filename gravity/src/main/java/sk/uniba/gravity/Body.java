@@ -1,7 +1,6 @@
 package sk.uniba.gravity;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 public class Body extends Circle {
@@ -15,12 +14,12 @@ public class Body extends Circle {
 	/**
 	 * Average density of Earth is 5515 kg/m3
 	 */
-	public static final double DEFAULT_DENSITY = 5515;
+	public static final double DEFAULT_DENSITY = 5_515;
 	
 	/**
 	 * Pixel size in meters (1000km)
 	 */
-	public static final double PIXEL_SIZE = 1000000;
+	public static final double PIXEL_SIZE = 1_000_000;
 	//public static final double PIXEL_SIZE = 1;
 	
 	private Vector2D velocity;
@@ -50,11 +49,6 @@ public class Body extends Circle {
 		return new Color(colorValue, colorValue, colorValue);
 	}
 
-	public void draw(Graphics2D g) {
-		g.setColor(getColor());
-		super.draw(g);
-	}
-	
 	public void setDensity(double density) {
 		this.density = density;
 	}
@@ -73,6 +67,6 @@ public class Body extends Circle {
 	
 	@Override
 	public String toString() {
-		return "R" + getRadius() * PIXEL_SIZE / 1000;
+		return "R" + getRadius() * PIXEL_SIZE;
 	}
 }
