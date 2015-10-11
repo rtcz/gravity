@@ -85,7 +85,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 					double gForce = (Body.G_CONSTANT * mass1 * mass2) / Math.pow(dist12, 2);
 
 					// momentum p=F.t (force is applied one second)
-					double momentum = gForce * 1;
+					double momentum = gForce * dSeconds;
 
 					// body velocities v=p/m
 					double sVelocity1 = momentum / mass1;
@@ -97,15 +97,25 @@ public class Canvas extends JPanel implements InteractiveGame {
 
 					Vector2D vVelocity1 = uVect12.scalarMultiply(sVelocity1);
 					Vector2D vVelocity2 = uVect21.scalarMultiply(sVelocity2);
-
+					
+					b1.setDeltaTime(dSeconds);
+					b2.setDeltaTime(dSeconds);
+					
 					b1.setVelocity(b1.getVelocity().add(vVelocity1));
 					b2.setVelocity(b2.getVelocity().add(vVelocity2));
 				}
 			}
 		}
 		for (Body body : bodies) {
-			Vector2D tVelocity = body.getVelocity().scalarMultiply(dSeconds);
+			Vector2D tVelocity = body.getVelocity();
 			Vector2D newCenter = body.getCenter().add(tVelocity);
+			
+			if (body.toString().equals("R 1737.0 KM")) {
+				//System.out.printf("%.3f %.3f | %.3f\n", tVelocity.getX(), tVelocity.getY(), dSeconds);
+				//System.out.printf("%.3f %.3f | %.3f\n", tVelocity.getX(), tVelocity.getY(), dSeconds);
+			}
+			
+			
 			body.setCenter(newCenter);
 			body.addTrajectoryPoint(newCenter);
 		}
