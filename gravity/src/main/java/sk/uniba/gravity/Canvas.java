@@ -1,5 +1,6 @@
 package sk.uniba.gravity;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -7,7 +8,9 @@ import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.swing.JPanel;
 
@@ -16,13 +19,15 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 public class Canvas extends JPanel implements InteractiveGame {
 
 	private static final long serialVersionUID = -4662105822647187214L;
+	
+	public static final double ZOOM_FACTOR = 1.08;
 
 	private GameManager mng;
 
 	private List<Body> bodies = new ArrayList<Body>();
-	
+
 	private Vector2D refPoint;
-	private double refSize = 1;
+	private double refSize = 1e-6;
 
 	public Canvas() {
 		setDoubleBuffered(true);
@@ -32,11 +37,12 @@ public class Canvas extends JPanel implements InteractiveGame {
 		addKeyListener(this);
 		addMouseListener(this);
 		addMouseMotionListener(this);
+		addMouseWheelListener(this);
 	}
 
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		render((Graphics2D) g);
+		render((Graphics2D) g.create());
 	}
 
 	@Override
@@ -45,51 +51,53 @@ public class Canvas extends JPanel implements InteractiveGame {
 		refPoint = new Vector2D(0, 0);
 
 		// TEMP CODE
-		Body earth = new Body(new Vector2D(100, 100), 6_371_000);
+		Body earth = new Body(new Vector2D(100e6, 100e6), 6.371e6);
 		earth.setDensity(5515);
-		//earth.setCenter(refPoint.subtract(earth.getCenter()));
-		//earth.setCenter(earth.getCenter().subtract(refPoint));
+		// earth.setCenter(refPoint.subtract(earth.getCenter()));
+		// earth.setCenter(earth.getCenter().subtract(refPoint));
 		bodies.add(earth);
-		
-		Body moon = new Body(new Vector2D(372, 372), 1_737_000);
+
+		Body moon = new Body(new Vector2D(372e6, 372e6), 1.737e6);
 		moon.setDensity(3346);
-		//moon.setCenter(moon.getCenter().subtract(refPoint));
-		//moon.setCenter(refPoint.subtract(moon.getCenter()));
+		moon.setVelocity(1023, new Vector2D(0.70711, -0.70711));
+		// moon.setCenter(moon.getCenter().subtract(refPoint));
+		// moon.setCenter(refPoint.subtract(moon.getCenter()));
 		bodies.add(moon);
 	}
 
 	@Override
-	public void update(int delta) {
+	public void update(double delta) {
 		for (int i = 0; i < bodies.size(); i++) {
 			for (int j = 0; j < bodies.size(); j++) {
 				if (i > j) {
-					
+
 					Body b1 = bodies.get(i);
 					Body b2 = bodies.get(j);
 					double mass1 = b1.getMass();
 					double mass2 = b2.getMass();
-					
-					// gravitational force by Newton's law of universal gravitation F=G.m1.m2/r^2
+
+					// gravitational force by Newton's law of universal
+					// gravitation F=G.m1.m2/r^2
 					double dist12 = b1.getCenter().distance(b2.getCenter());
-					if (dist12 < 0) {
-						dist12 = 0;
-					}
-					double gForce = (Body.G_CONSTANT * mass1 * mass2) / Math.pow(dist12 * Body.PIXEL_SIZE, 2);
-					
-					// momentum p
-					double momentum = gForce * delta / 1_000d;
-					
+					double gForce = (Body.G_CONSTANT * mass1 * mass2) / Math.pow(dist12, 2);
+
+					// momentum p					
+					double momentum = gForce * (delta / 1_000d);
+
 					// body velocities v=p/m
 					double v1 = momentum / mass1;
 					double v2 = momentum / mass2;
-					
+
 					// direction vector
 					Vector2D vect12 = b2.getCenter().subtract(b1.getCenter());
 					Vector2D uVect12 = new Vector2D(vect12.getX() / dist12, vect12.getY() / dist12);
 					Vector2D uVect21 = uVect12.scalarMultiply(-1);
-					
-					b1.setVelocity(uVect12.scalarMultiply(v1));
-					b2.setVelocity(uVect21.scalarMultiply(v2));
+
+					Vector2D vSum1 = b1.getVelocity().add(uVect12.scalarMultiply(v1));
+					Vector2D vSum2 = b2.getVelocity().add(uVect21.scalarMultiply(v2));
+
+					b1.setVelocity(vSum1);
+					b2.setVelocity(vSum2);
 				}
 			}
 		}
@@ -107,18 +115,41 @@ public class Canvas extends JPanel implements InteractiveGame {
 	private void render(Graphics2D g) {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
+		Graphics2D gg = (Graphics2D) g.create();
+		// RELATIVE COORDINATES
+		gg.translate(refPoint.getX(), refPoint.getY());
+		// RELATIVE SIZE
+		gg.scale(refSize, refSize);
+
+		for (Body body : bodies) {
+			gg.setColor(body.getColor());
+
+			Vector2D pos = body.getCenter();
+			int size = (int) (body.getRadius() * 2);
+			int x = (int) (pos.getX() - body.getRadius());
+			int y = (int) (pos.getY() - body.getRadius());
+			gg.fillOval(x, y, size, size);
+			
+			gg.setStroke(new BasicStroke((float) (1 / refSize)));
+			gg.setColor(Color.GREEN);
+			double vX = body.getVelocity().getX();
+			gg.drawLine((int) pos.getX(), (int) pos.getY(), (int) (vX + pos.getX()), (int) pos.getY());
+			gg.setColor(Color.RED);
+			double vY = body.getVelocity().getY();
+			gg.drawLine((int) pos.getX(), (int) pos.getY(), (int) pos.getX(), (int) (vY + pos.getY()));
+		}
+		
+		
 		g.setColor(Color.WHITE);
 		int fps = mng.getFps();
 		g.drawString("FPS " + fps, 10, 20);
 
-		for (Body body : bodies) {
-			g.setColor(body.getColor());
-			int size = (int) (body.getRadius() * 2);
-			int x = (int) (body.getCenter().getX() + refPoint.getX() - body.getRadius());
-			int y = (int) (body.getCenter().getY() + refPoint.getY() - body.getRadius());
-			g.fillOval(x, y, size, size);
-		}
+		Date date = new Date(mng.getGameTime());
+		String dateValue = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date);
+		g.drawString("TIME " + dateValue, 10, 40);
 		
+		g.drawString("SCALE 1px=" + Math.round(1 / (refSize * 1000)) + "km", 10, 60);
+
 		g.setColor(Color.GREEN);
 		Cross reference = new Cross(refPoint, 10);
 		reference.draw(g);
@@ -129,7 +160,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 		// TODO Auto-generated method stub
 
 	}
-	
+
 	@Override
 	public void mousePressed(MouseEvent e) {
 
@@ -171,7 +202,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 	}
 
 	Vector2D lastDragPos;
-	
+
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		if (lastDragPos == null) {
@@ -179,7 +210,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 		}
 		Vector2D newDragPos = new Vector2D(e.getX(), e.getY());
 		Vector2D move = lastDragPos.subtract(newDragPos);
-		
+
 		refPoint = refPoint.subtract(move);
 		lastDragPos = newDragPos;
 	}
@@ -187,12 +218,32 @@ public class Canvas extends JPanel implements InteractiveGame {
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		refSize *= e.getWheelRotation();
+
+		// if (e.getWheelRotation() > 0) {
+		// refSize = 1.1;
+		// } else if (e.getWheelRotation() < 0) {
+		// refSize = 1 / 1.1;
+		// }
+		// // System.out.println(e.getS);
+
+		double zoom = 1;
+		if (e.getWheelRotation() > 0) {
+			zoom = ZOOM_FACTOR;
+		} else {
+			zoom = 1 / ZOOM_FACTOR;
+		}
+		Vector2D mousePos = new Vector2D(e.getX(), e.getY());
+		Vector2D mouseRefPos = refPoint.subtract(mousePos);
+		Vector2D zoomedRefPos = mouseRefPos.scalarMultiply(zoom);
+		Vector2D move = mouseRefPos.subtract(zoomedRefPos);
+		
+		refSize *= zoom;
+		refPoint = refPoint.subtract(move);
 	}
 
 }

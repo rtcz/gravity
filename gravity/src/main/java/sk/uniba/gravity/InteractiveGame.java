@@ -10,9 +10,9 @@ public interface InteractiveGame extends MouseListener, KeyListener, MouseMotion
 	public void init(GameManager mng);
 
 	/**
-	 * @param delta time since last update in milliseconds
+	 * @param game delta time since last update in milliseconds
 	 */
-	public void update(int delta);
+	public void update(double delta);
 
 	public void render();
 

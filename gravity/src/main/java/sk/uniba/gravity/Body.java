@@ -12,16 +12,13 @@ public class Body extends Circle {
 	public static final double G_CONSTANT = 6.674e-11;
 	
 	/**
-	 * Average density of Earth is 5515 kg/m3
+	 * Density of water 1000 kg/m3
 	 */
-	public static final double DEFAULT_DENSITY = 5_515;
+	public static final double DEFAULT_DENSITY = 1000;
 	
 	/**
-	 * Pixel size in meters (1000km)
+	 * m/s
 	 */
-	public static final double PIXEL_SIZE = 1_000_000;
-	//public static final double PIXEL_SIZE = 1;
-	
 	private Vector2D velocity;
 	
 	private double density = DEFAULT_DENSITY;
@@ -37,12 +34,13 @@ public class Body extends Circle {
 	 * @return
 	 */
 	public double getMass() {
-		double volume = (float) 4/3 * Math.PI * Math.pow(getRadius() * PIXEL_SIZE, 3);
+		double volume = (float) 4/3 * Math.PI * Math.pow(getRadius(), 3);
 		return volume * density;
 	}
 
 	public Color getColor() {
-		int colorValue = 255 - (int) getRadius();
+		// TODO involve density
+		int colorValue = 255 - (int) Math.log10(getRadius()) * 10;
 		if (colorValue < 128) {
 			colorValue = 128;
 		}
@@ -61,12 +59,16 @@ public class Body extends Circle {
 		this.velocity = velocity;
 	}
 	
+	public void setVelocity(double speed, Vector2D unitVector) {
+		this.velocity = unitVector.scalarMultiply(speed);
+	}
+	
 	public Vector2D getVelocity() {
 		return velocity;
 	}
 	
 	@Override
 	public String toString() {
-		return "R" + getRadius() * PIXEL_SIZE;
+		return "R " + getRadius() / 1000f + " KM";
 	}
 }

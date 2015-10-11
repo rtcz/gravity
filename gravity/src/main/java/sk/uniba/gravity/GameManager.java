@@ -26,12 +26,14 @@ public class GameManager {
 
 	private int fpsCounter;
 
+	private long gameTime;
+
 	private int width;
 
 	private int height;
 
 	private boolean fullscreen;
-	
+
 	private double gameSpeed = 1;
 
 	private JFrame window = new JFrame();
@@ -96,6 +98,7 @@ public class GameManager {
 		long lastTime = getTime();
 		int skippedFrames = 0;
 		int maxSkippedFrames = DESIRED_FPS / MIN_FPS;
+		gameTime = 0;
 		while (true) {
 			long currTime = getTime();
 			if (syncUpdates) {
@@ -104,12 +107,13 @@ public class GameManager {
 					nextTime = currTime;
 				}
 			}
-			if (currTime >= nextTime) {
-				double delta = (currTime - lastTime) * gameSpeed;
-				canvas.update((int) delta);
+			if (currTime > nextTime) {
+				double delta = (currTime - lastTime);
 				lastTime = currTime;
 				nextTime += deltaTime;
-				
+				gameTime += delta * gameSpeed;
+				canvas.update(delta * gameSpeed);
+
 				if (syncRenders) {
 					// render extra frames if fps if too low
 					if ((currTime < nextTime) || skippedFrames > maxSkippedFrames) {
@@ -137,12 +141,17 @@ public class GameManager {
 		}
 
 	}
-	
+
 	/**
-	 * @param speed multiplier, 1 is for realtime
+	 * @param speed
+	 *            multiplier, 1 is for realtime
 	 */
 	public void setGameSpeed(double speed) {
 		this.gameSpeed = speed;
+	}
+
+	public double getGameSpeed() {
+		return gameSpeed;
 	}
 
 	public void updateFps() {
@@ -156,6 +165,10 @@ public class GameManager {
 
 	public int getFps() {
 		return fps;
+	}
+
+	public long getGameTime() {
+		return gameTime;
 	}
 
 	/**

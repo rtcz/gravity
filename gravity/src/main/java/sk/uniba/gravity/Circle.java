@@ -1,7 +1,5 @@
 package sk.uniba.gravity;
 
-import java.awt.Graphics2D;
-
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 public class Circle {
