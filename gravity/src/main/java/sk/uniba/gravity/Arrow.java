@@ -7,19 +7,18 @@ public class Arrow {
 
 	private Vector2D start;
 	private Vector2D end;
+	private double headSize;
 
-	public Arrow(Vector2D start, Vector2D end) {
+	public Arrow(Vector2D start, Vector2D end, double headSize) {
 		this.start = start;
 		this.end = end;
+		this.headSize = headSize;
 	}
 
 	public void draw(Graphics2D g) {
 
-		double length = start.distance(end);
-		double headSize = Math.sqrt(2) * length / 5;
-
 		Vector2D arrowVect = end.subtract(start);
-		Vector2D uVect = new Vector2D(arrowVect.getX() / length, arrowVect.getY() / length);
+		Vector2D uVect = Vector2DUtils.unit(arrowVect);
 
 		Vector2D vHeadSize = uVect.scalarMultiply(headSize);
 

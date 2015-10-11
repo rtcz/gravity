@@ -1,6 +1,9 @@
 package sk.uniba.gravity;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 public class Body extends Circle {
@@ -22,6 +25,8 @@ public class Body extends Circle {
 	private Vector2D velocity;
 	
 	private double density = DEFAULT_DENSITY;
+	
+	private List<Vector2D> trajectory = new ArrayList<Vector2D>();
 	
 	public Body(Vector2D center, double radius) {
 		super(center, radius);
@@ -70,5 +75,13 @@ public class Body extends Circle {
 	@Override
 	public String toString() {
 		return "R " + getRadius() / 1000f + " KM";
+	}
+	
+	public void addTrajectoryPoint(Vector2D point) {
+		trajectory.add(point);
+	}
+	
+	public List<Vector2D> getTrajectory() {
+		return trajectory;
 	}
 }

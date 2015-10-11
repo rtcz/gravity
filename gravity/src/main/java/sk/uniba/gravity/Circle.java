@@ -27,4 +27,16 @@ public class Circle {
 	public double getRadius() {
 		return radius;
 	}
+	
+	public double getSize() {
+		return radius * 2;
+	}
+	
+	public double getX() {
+		return center.getX() - radius;
+	}
+	
+	public double getY() {
+		return center.getY() - radius;
+	}
 }

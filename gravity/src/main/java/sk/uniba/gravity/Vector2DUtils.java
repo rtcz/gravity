@@ -10,4 +10,9 @@ public class Vector2DUtils {
 		double y = vector.getX() * Math.sin(rad) + vector.getY() * Math.cos(rad);
 		return new Vector2D(x, y);
 	}
+	
+	public static Vector2D unit(Vector2D vector) {
+		double norm = vector.getNorm();
+		return new Vector2D(vector.getX() / norm, vector.getY() / norm);
+	}
 }

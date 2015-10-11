@@ -69,6 +69,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 
 	@Override
 	public void update(double delta) {
+		double dSeconds = delta / 1_000d;
 		for (int i = 0; i < bodies.size(); i++) {
 			for (int j = 0; j < bodies.size(); j++) {
 				if (i > j) {
@@ -83,29 +84,30 @@ public class Canvas extends JPanel implements InteractiveGame {
 					double dist12 = b1.getCenter().distance(b2.getCenter());
 					double gForce = (Body.G_CONSTANT * mass1 * mass2) / Math.pow(dist12, 2);
 
-					// momentum p
-					double momentum = gForce * (delta / 1_000d);
+					// momentum p=F.t (force is applied one second)
+					double momentum = gForce * 1;
 
 					// body velocities v=p/m
-					double v1 = momentum / mass1;
-					double v2 = momentum / mass2;
+					double sVelocity1 = momentum / mass1;
+					double sVelocity2 = momentum / mass2;
 
-					// direction vector
-					Vector2D vect12 = b2.getCenter().subtract(b1.getCenter());
-					Vector2D uVect12 = new Vector2D(vect12.getX() / dist12, vect12.getY() / dist12);
+					// direction vectors
+					Vector2D uVect12 = Vector2DUtils.unit(b2.getCenter().subtract(b1.getCenter()));
 					Vector2D uVect21 = uVect12.scalarMultiply(-1);
 
-					Vector2D vSum1 = b1.getVelocity().add(uVect12.scalarMultiply(v1));
-					Vector2D vSum2 = b2.getVelocity().add(uVect21.scalarMultiply(v2));
+					Vector2D vVelocity1 = uVect12.scalarMultiply(sVelocity1);
+					Vector2D vVelocity2 = uVect21.scalarMultiply(sVelocity2);
 
-					b1.setVelocity(vSum1);
-					b2.setVelocity(vSum2);
+					b1.setVelocity(b1.getVelocity().add(vVelocity1));
+					b2.setVelocity(b2.getVelocity().add(vVelocity2));
 				}
 			}
 		}
 		for (Body body : bodies) {
-			Vector2D newCenter = body.getCenter().add(body.getVelocity());
+			Vector2D tVelocity = body.getVelocity().scalarMultiply(dSeconds);
+			Vector2D newCenter = body.getCenter().add(tVelocity);
 			body.setCenter(newCenter);
+			body.addTrajectoryPoint(newCenter);
 		}
 	}
 
@@ -121,30 +123,41 @@ public class Canvas extends JPanel implements InteractiveGame {
 		// RELATIVE COORDINATES
 		gg.translate(refPoint.getX(), refPoint.getY());
 		// RELATIVE SIZE
-		gg.scale(refSize, refSize);
+		// gg.scale(refSize, refSize);
 
 		for (Body body : bodies) {
 			gg.setColor(body.getColor());
 
 			// the body
-			Vector2D pos = body.getCenter();
-			int size = (int) (body.getRadius() * 2);
-			int x = (int) (pos.getX() - body.getRadius());
-			int y = (int) (pos.getY() - body.getRadius());
+			// TODO create PixelBody object
+			Vector2D pixelPos = body.getCenter().scalarMultiply(refSize);
+			int size = (int) (body.getSize() * refSize);
+			int x = (int) (body.getX() * refSize);
+			int y = (int) (body.getY() * refSize);
 			gg.fillOval(x, y, size, size);
+			
+			// trajectory
+			gg.setStroke(new BasicStroke(1));
+			gg.setColor(Color.ORANGE);
 
-			double pixelSize = 1 / refSize;
+			int[] xPoints = new int[body.getTrajectory().size()];
+			int[] yPoints = new int[body.getTrajectory().size()];
+			for (int i = 0; i < body.getTrajectory().size(); i++) {
+				xPoints[i] = (int) (body.getTrajectory().get(i).getX() * refSize);
+				yPoints[i] = (int) (body.getTrajectory().get(i).getY() * refSize);
+			}
+			gg.drawPolyline(xPoints, yPoints, body.getTrajectory().size());
+
+			// velocity indicators	
+			double nVelX = body.getVelocity().getX() * 0.1;
+			double nVelY = body.getVelocity().getY() * 0.1;
+			Vector2D vSize = new Vector2D(nVelX, nVelY);
+			Vector2D vSizeX = new Vector2D(vSize.getX(), 0);
+			Vector2D vSizeY = new Vector2D(0, vSize.getY());
 			
-			// velocity indicators
-			gg.setStroke(new BasicStroke((float) pixelSize));
-			gg.setColor(Color.BLUE);
-			
-			Vector2D vSizeX = new Vector2D(body.getVelocity().getX() * pixelSize, 0);
-			Vector2D vSizeY = new Vector2D(0, body.getVelocity().getY() * pixelSize);
-			
-			Arrow velocity = new Arrow(pos, pos.add(body.getVelocity().scalarMultiply(pixelSize)));
-			Arrow xVelocity = new Arrow(pos, pos.add(vSizeX));
-			Arrow yVelocity = new Arrow(pos, pos.add(vSizeY));
+			Arrow velocity = new Arrow(pixelPos, pixelPos.add(vSize), 10);
+			Arrow xVelocity = new Arrow(pixelPos, pixelPos.add(vSizeX), 10);
+			Arrow yVelocity = new Arrow(pixelPos, pixelPos.add(vSizeY), 10);
 			
 			gg.setColor(Color.GREEN);
 			velocity.draw(gg);
