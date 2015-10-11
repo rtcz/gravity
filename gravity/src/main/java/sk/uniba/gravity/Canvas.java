@@ -52,18 +52,19 @@ public class Canvas extends JPanel implements InteractiveGame {
 		this.mng = mng;
 		refPoint = new Vector2D(0, 0);
 
+		Body sun = new Body(new Vector2D(0, 0), 696.342e6);
+		sun.setDensity(1408);
+		bodies.add(sun);
+		
 		// TEMP CODE
-		Body earth = new Body(new Vector2D(100e6, 100e6), 6.371e6);
+		Body earth = new Body(new Vector2D(1.496e11, 0), 6.371e6);
 		earth.setDensity(5515);
-		// earth.setCenter(refPoint.subtract(earth.getCenter()));
-		// earth.setCenter(earth.getCenter().subtract(refPoint));
+		earth.setVelocity(new Vector2D(0, -29800));
 		bodies.add(earth);
 
-		Body moon = new Body(new Vector2D(372e6, 372e6), 1.737e6);
+		Body moon = new Body(new Vector2D(1.496e11 + 384.4e6, 0), 1.737e6);
 		moon.setDensity(3346);
-		moon.setVelocity(1023, new Vector2D(0.70711, -0.70711));
-		// moon.setCenter(moon.getCenter().subtract(refPoint));
-		// moon.setCenter(refPoint.subtract(moon.getCenter()));
+		moon.setVelocity(new Vector2D(0, -1023 + -29800));
 		bodies.add(moon);
 	}
 
@@ -97,25 +98,15 @@ public class Canvas extends JPanel implements InteractiveGame {
 
 					Vector2D vVelocity1 = uVect12.scalarMultiply(sVelocity1);
 					Vector2D vVelocity2 = uVect21.scalarMultiply(sVelocity2);
-					
-					b1.setDeltaTime(dSeconds);
-					b2.setDeltaTime(dSeconds);
-					
+
 					b1.setVelocity(b1.getVelocity().add(vVelocity1));
 					b2.setVelocity(b2.getVelocity().add(vVelocity2));
 				}
 			}
 		}
 		for (Body body : bodies) {
-			Vector2D tVelocity = body.getVelocity();
+			Vector2D tVelocity = body.getVelocity().scalarMultiply(dSeconds);
 			Vector2D newCenter = body.getCenter().add(tVelocity);
-			
-			if (body.toString().equals("R 1737.0 KM")) {
-				//System.out.printf("%.3f %.3f | %.3f\n", tVelocity.getX(), tVelocity.getY(), dSeconds);
-				//System.out.printf("%.3f %.3f | %.3f\n", tVelocity.getX(), tVelocity.getY(), dSeconds);
-			}
-			
-			
 			body.setCenter(newCenter);
 			body.addTrajectoryPoint(newCenter);
 		}
