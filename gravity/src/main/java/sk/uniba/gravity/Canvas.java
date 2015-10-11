@@ -19,8 +19,10 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 public class Canvas extends JPanel implements InteractiveGame {
 
 	private static final long serialVersionUID = -4662105822647187214L;
-	
-	public static final double ZOOM_FACTOR = 1.08;
+
+	public static final double ZOOM_FACTOR = 1.1;
+	public static final double MIN_ZOOM = 1e-12;
+	public static final double MAX_ZOOM = 1;
 
 	private GameManager mng;
 
@@ -81,7 +83,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 					double dist12 = b1.getCenter().distance(b2.getCenter());
 					double gForce = (Body.G_CONSTANT * mass1 * mass2) / Math.pow(dist12, 2);
 
-					// momentum p					
+					// momentum p
 					double momentum = gForce * (delta / 1_000d);
 
 					// body velocities v=p/m
@@ -114,7 +116,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 
 	private void render(Graphics2D g) {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		
+
 		Graphics2D gg = (Graphics2D) g.create();
 		// RELATIVE COORDINATES
 		gg.translate(refPoint.getX(), refPoint.getY());
@@ -124,22 +126,35 @@ public class Canvas extends JPanel implements InteractiveGame {
 		for (Body body : bodies) {
 			gg.setColor(body.getColor());
 
+			// the body
 			Vector2D pos = body.getCenter();
 			int size = (int) (body.getRadius() * 2);
 			int x = (int) (pos.getX() - body.getRadius());
 			int y = (int) (pos.getY() - body.getRadius());
 			gg.fillOval(x, y, size, size);
+
+			double pixelSize = 1 / refSize;
 			
-			gg.setStroke(new BasicStroke((float) (1 / refSize)));
+			// velocity indicators
+			gg.setStroke(new BasicStroke((float) pixelSize));
+			gg.setColor(Color.BLUE);
+			
+			Vector2D vSizeX = new Vector2D(body.getVelocity().getX() * pixelSize, 0);
+			Vector2D vSizeY = new Vector2D(0, body.getVelocity().getY() * pixelSize);
+			
+			Arrow velocity = new Arrow(pos, pos.add(body.getVelocity().scalarMultiply(pixelSize)));
+			Arrow xVelocity = new Arrow(pos, pos.add(vSizeX));
+			Arrow yVelocity = new Arrow(pos, pos.add(vSizeY));
+			
 			gg.setColor(Color.GREEN);
-			double vX = body.getVelocity().getX();
-			gg.drawLine((int) pos.getX(), (int) pos.getY(), (int) (vX + pos.getX()), (int) pos.getY());
+			velocity.draw(gg);
+			gg.setColor(Color.BLUE);
+			xVelocity.draw(gg);
 			gg.setColor(Color.RED);
-			double vY = body.getVelocity().getY();
-			gg.drawLine((int) pos.getX(), (int) pos.getY(), (int) pos.getX(), (int) (vY + pos.getY()));
+			yVelocity.draw(gg);
 		}
-		
-		
+
+		// simulation info
 		g.setColor(Color.WHITE);
 		int fps = mng.getFps();
 		g.drawString("FPS " + fps, 10, 20);
@@ -147,10 +162,12 @@ public class Canvas extends JPanel implements InteractiveGame {
 		Date date = new Date(mng.getGameTime());
 		String dateValue = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date);
 		g.drawString("TIME " + dateValue, 10, 40);
-		
-		g.drawString("SCALE 1px=" + Math.round(1 / (refSize * 1000)) + "km", 10, 60);
 
-		g.setColor(Color.GREEN);
+		Length length = new Length(1 / refSize);
+		g.drawString("SCALE 1px = " + length, 10, 60);
+
+		// reference cross
+		g.setColor(Color.WHITE);
 		Cross reference = new Cross(refPoint, 10);
 		reference.draw(g);
 	}
@@ -224,24 +241,27 @@ public class Canvas extends JPanel implements InteractiveGame {
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 
-		// if (e.getWheelRotation() > 0) {
-		// refSize = 1.1;
-		// } else if (e.getWheelRotation() < 0) {
-		// refSize = 1 / 1.1;
-		// }
-		// // System.out.println(e.getS);
-
 		double zoom = 1;
 		if (e.getWheelRotation() > 0) {
 			zoom = ZOOM_FACTOR;
 		} else {
 			zoom = 1 / ZOOM_FACTOR;
 		}
+
+		// max zoom limit
+		if (refSize * zoom > MAX_ZOOM) {
+			zoom = MAX_ZOOM / refSize;
+		}
+		// min zoom limit
+		if (refSize * zoom < MIN_ZOOM) {
+			zoom = MIN_ZOOM / refSize;
+		}
+
 		Vector2D mousePos = new Vector2D(e.getX(), e.getY());
 		Vector2D mouseRefPos = refPoint.subtract(mousePos);
 		Vector2D zoomedRefPos = mouseRefPos.scalarMultiply(zoom);
 		Vector2D move = mouseRefPos.subtract(zoomedRefPos);
-		
+
 		refSize *= zoom;
 		refPoint = refPoint.subtract(move);
 	}
