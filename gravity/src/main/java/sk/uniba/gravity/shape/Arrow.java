@@ -1,7 +1,9 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.shape;
 
 import java.awt.Graphics2D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+
+import sk.uniba.gravity.Vector2DUtils;
 
 public class Arrow {
 

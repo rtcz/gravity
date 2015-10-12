@@ -1,4 +1,4 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.shape;
 
 import java.awt.Graphics2D;
 

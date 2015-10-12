@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
+import sk.uniba.gravity.shape.Circle;
+
 public class Body extends Circle {
 
 	/**

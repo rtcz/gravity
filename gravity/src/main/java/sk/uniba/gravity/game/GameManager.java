@@ -1,4 +1,4 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.game;
 
 import javax.swing.JFrame;
 
@@ -43,9 +43,9 @@ public class GameManager {
 	 */
 	private double deltaTime = 1_000d / DESIRED_FPS;
 
-	private Canvas canvas;
+	private GameCanvas canvas;
 
-	public GameManager(Canvas canvas) {
+	public GameManager(GameCanvas canvas) {
 		this.canvas = canvas;
 		// set window to center of the screen
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

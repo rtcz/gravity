@@ -1,4 +1,4 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.shape;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 

@@ -1,28 +1,28 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.app;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.swing.JPanel;
-
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
-public class Canvas extends JPanel implements InteractiveGame {
+import sk.uniba.gravity.Body;
+import sk.uniba.gravity.Length;
+import sk.uniba.gravity.Vector2DUtils;
+import sk.uniba.gravity.game.GameCanvas;
+import sk.uniba.gravity.game.GameLoop;
+import sk.uniba.gravity.game.GameManager;
+import sk.uniba.gravity.shape.Arrow;
+import sk.uniba.gravity.shape.Cross;
+
+public class Gravity extends GameCanvas implements GameLoop {
 
 	private static final long serialVersionUID = -4662105822647187214L;
-
-	public static final double ZOOM_FACTOR = 1.1;
-	public static final double MIN_ZOOM = 1e-12;
-	public static final double MAX_ZOOM = 1;
 
 	private GameManager mng;
 
@@ -31,15 +31,10 @@ public class Canvas extends JPanel implements InteractiveGame {
 	private Vector2D refPoint;
 	private double refSize = 1e-6;
 
-	public Canvas() {
+	public Gravity() {
 		setDoubleBuffered(true);
 		setFocusable(true);
 		setBackground(Color.BLACK);
-
-		addKeyListener(this);
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addMouseWheelListener(this);
 	}
 
 	protected void paintComponent(Graphics g) {
@@ -55,7 +50,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 		Body sun = new Body(new Vector2D(0, 0), 696.342e6);
 		sun.setDensity(1408);
 		bodies.add(sun);
-		
+
 		// TEMP CODE
 		Body earth = new Body(new Vector2D(1.496e11, 0), 6.371e6);
 		earth.setDensity(5515);
@@ -136,7 +131,7 @@ public class Canvas extends JPanel implements InteractiveGame {
 			int x = (int) (body.getX() * refSize);
 			int y = (int) (body.getY() * refSize);
 			gg.fillOval(x, y, size, size);
-			
+
 			// trajectory
 			gg.setStroke(new BasicStroke(1));
 			gg.setColor(Color.ORANGE);
@@ -149,17 +144,21 @@ public class Canvas extends JPanel implements InteractiveGame {
 			}
 			gg.drawPolyline(xPoints, yPoints, body.getTrajectory().size());
 
-			// velocity indicators	
-			double nVelX = body.getVelocity().getX() * 0.1;
-			double nVelY = body.getVelocity().getY() * 0.1;
+			// velocity indicators
+			double pos = (body.getVelocity().getX() > 0) ? 1 : -1;
+			double nVelX = Math.log10(Math.abs(body.getVelocity().getX()) + 1) * pos * 10;
+
+			pos = (body.getVelocity().getY() > 0) ? 1 : -1;
+			double nVelY = Math.log10(Math.abs(body.getVelocity().getY()) + 1) * pos * 10;
+
 			Vector2D vSize = new Vector2D(nVelX, nVelY);
 			Vector2D vSizeX = new Vector2D(vSize.getX(), 0);
 			Vector2D vSizeY = new Vector2D(0, vSize.getY());
-			
+
 			Arrow velocity = new Arrow(pixelPos, pixelPos.add(vSize), 10);
 			Arrow xVelocity = new Arrow(pixelPos, pixelPos.add(vSizeX), 10);
 			Arrow yVelocity = new Arrow(pixelPos, pixelPos.add(vSizeY), 10);
-			
+
 			gg.setColor(Color.GREEN);
 			velocity.draw(gg);
 			gg.setColor(Color.BLUE);
@@ -186,98 +185,19 @@ public class Canvas extends JPanel implements InteractiveGame {
 		reference.draw(g);
 	}
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-
+	protected Vector2D getRefPoint() {
+		return refPoint;
 	}
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-
+	protected void setRefPoint(Vector2D refPoint) {
+		this.refPoint = refPoint;
 	}
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		lastDragPos = null;
+	protected double getRefSize() {
+		return refSize;
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
+	protected void setRefSize(double refSize) {
+		this.refSize = refSize;
 	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	Vector2D lastDragPos;
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		if (lastDragPos == null) {
-			lastDragPos = new Vector2D(e.getX(), e.getY());
-		}
-		Vector2D newDragPos = new Vector2D(e.getX(), e.getY());
-		Vector2D move = lastDragPos.subtract(newDragPos);
-
-		refPoint = refPoint.subtract(move);
-		lastDragPos = newDragPos;
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseWheelMoved(MouseWheelEvent e) {
-
-		double zoom = 1;
-		if (e.getWheelRotation() > 0) {
-			zoom = ZOOM_FACTOR;
-		} else {
-			zoom = 1 / ZOOM_FACTOR;
-		}
-
-		// max zoom limit
-		if (refSize * zoom > MAX_ZOOM) {
-			zoom = MAX_ZOOM / refSize;
-		}
-		// min zoom limit
-		if (refSize * zoom < MIN_ZOOM) {
-			zoom = MIN_ZOOM / refSize;
-		}
-
-		Vector2D mousePos = new Vector2D(e.getX(), e.getY());
-		Vector2D mouseRefPos = refPoint.subtract(mousePos);
-		Vector2D zoomedRefPos = mouseRefPos.scalarMultiply(zoom);
-		Vector2D move = mouseRefPos.subtract(zoomedRefPos);
-
-		refSize *= zoom;
-		refPoint = refPoint.subtract(move);
-	}
-
 }
