@@ -30,6 +30,11 @@ public class Body extends Circle {
 	
 	private List<Vector2D> trajectory = new ArrayList<Vector2D>();
 	
+	/**
+	 * true if last trajectory point is temporary
+	 */
+	private boolean tempTrajectoryPoint;
+	
 	public Body(Vector2D center, double radius) {
 		super(center, radius);
 		velocity = new Vector2D(0, 0);
@@ -79,8 +84,24 @@ public class Body extends Circle {
 		return "R " + getRadius() / 1000f + " KM";
 	}
 	
+	public Vector2D getLastTrajectoryPoint() {
+		if (trajectory.isEmpty()) {
+			return null;
+		}
+		return trajectory.get(trajectory.size() - 1);
+	}
+	
 	public void addTrajectoryPoint(Vector2D point) {
+		addTrajectoryPoint(point, false);
+	}
+	
+	public void addTrajectoryPoint(Vector2D point, boolean temp) {
+		if (this.tempTrajectoryPoint) {
+			// if true, trajectory is not empty
+			trajectory.remove(trajectory.size() - 1);
+		}
 		trajectory.add(point);
+		this.tempTrajectoryPoint = temp;
 	}
 	
 	public List<Vector2D> getTrajectory() {

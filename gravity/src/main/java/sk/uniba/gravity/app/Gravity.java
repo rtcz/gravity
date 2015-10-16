@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.Body;
+import sk.uniba.gravity.GameBody;
 import sk.uniba.gravity.Length;
 import sk.uniba.gravity.Vector2DUtils;
 import sk.uniba.gravity.game.GameCanvas;
@@ -26,9 +27,10 @@ public class Gravity extends GameCanvas implements GameLoop {
 
 	private GameManager mng;
 
-	private List<Body> bodies = new ArrayList<Body>();
+	private List<GameBody> bodies = new ArrayList<GameBody>();
 
 	private Vector2D refPoint;
+	private Vector2D bodyRefPoint;
 	private double refSize = 1e-6;
 
 	public Gravity() {
@@ -47,17 +49,17 @@ public class Gravity extends GameCanvas implements GameLoop {
 		this.mng = mng;
 		refPoint = new Vector2D(0, 0);
 
-		Body sun = new Body(new Vector2D(0, 0), 696.342e6);
+		GameBody sun = new GameBody(new Vector2D(0, 0), 696.342e6);
 		sun.setDensity(1408);
 		bodies.add(sun);
 
 		// TEMP CODE
-		Body earth = new Body(new Vector2D(1.496e11, 0), 6.371e6);
+		GameBody earth = new GameBody(new Vector2D(1.496e11, 0), 6.371e6);
 		earth.setDensity(5515);
 		earth.setVelocity(new Vector2D(0, -29800));
 		bodies.add(earth);
 
-		Body moon = new Body(new Vector2D(1.496e11 + 384.4e6, 0), 1.737e6);
+		GameBody moon = new GameBody(new Vector2D(1.496e11 + 384.4e6, 0), 1.737e6);
 		moon.setDensity(3346);
 		moon.setVelocity(new Vector2D(0, -1023 + -29800));
 		bodies.add(moon);
@@ -103,7 +105,18 @@ public class Gravity extends GameCanvas implements GameLoop {
 			Vector2D tVelocity = body.getVelocity().scalarMultiply(dSeconds);
 			Vector2D newCenter = body.getCenter().add(tVelocity);
 			body.setCenter(newCenter);
-			body.addTrajectoryPoint(newCenter);
+
+			// trajectory
+			if (body.getTrajectory().isEmpty()) {
+				body.addTrajectoryPoint(newCenter);
+			} else {
+				Vector2D prevPos = body.getLastTrajectoryPoint();
+				if (prevPos.distance(newCenter) > body.getVelocity().getNorm()) {
+					body.addTrajectoryPoint(newCenter);
+				} else {
+					body.addTrajectoryPoint(newCenter, true);
+				}
+			}
 		}
 	}
 
@@ -120,17 +133,31 @@ public class Gravity extends GameCanvas implements GameLoop {
 		gg.translate(refPoint.getX(), refPoint.getY());
 		// RELATIVE SIZE
 		// gg.scale(refSize, refSize);
+		
+		for (GameBody body : bodies) {
+			if (body.isSelected()) {
+				// TODO 
+				Vector2D move = bodyRefPoint.subtract(body.getCenter()).scalarMultiply(getRefSize());
+				gg.translate(move.getX(), move.getY());
+				break;
+			}
+		}
 
-		for (Body body : bodies) {
-			gg.setColor(body.getColor());
-
+		for (GameBody body : bodies) {
 			// the body
 			// TODO create PixelBody object
 			Vector2D pixelPos = body.getCenter().scalarMultiply(refSize);
 			int size = (int) (body.getSize() * refSize);
-			int x = (int) (body.getX() * refSize);
-			int y = (int) (body.getY() * refSize);
+			int x = (int) (body.getTopLeftX() * refSize);
+			int y = (int) (body.getTopLeftY() * refSize);
+			gg.setColor(body.getColor());
 			gg.fillOval(x, y, size, size);
+			
+			if (body.isSelected()) {
+				gg.setColor(Color.CYAN);
+				gg.setStroke(new BasicStroke(size / 10));
+				gg.drawOval(x, y, size, size);
+			}
 
 			// trajectory
 			gg.setStroke(new BasicStroke(1));
@@ -192,6 +219,14 @@ public class Gravity extends GameCanvas implements GameLoop {
 	protected void setRefPoint(Vector2D refPoint) {
 		this.refPoint = refPoint;
 	}
+	
+	protected Vector2D getBodyRefPoint() {
+		return bodyRefPoint;
+	}
+
+	protected void setBodyRefPoint(Vector2D bodyRefPoint) {
+		this.bodyRefPoint = bodyRefPoint;
+	}
 
 	protected double getRefSize() {
 		return refSize;
@@ -199,5 +234,9 @@ public class Gravity extends GameCanvas implements GameLoop {
 
 	protected void setRefSize(double refSize) {
 		this.refSize = refSize;
+	}
+	
+	protected List<GameBody> getBodyList() {
+		return bodies;
 	}
 }

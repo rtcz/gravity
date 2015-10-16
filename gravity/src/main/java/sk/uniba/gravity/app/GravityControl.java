@@ -6,6 +6,8 @@ import java.awt.event.MouseWheelEvent;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
+import sk.uniba.gravity.GameBody;
+import sk.uniba.gravity.Vector2DUtils;
 import sk.uniba.gravity.game.InteractiveGame;
 
 public class GravityControl extends Gravity implements InteractiveGame {
@@ -15,7 +17,7 @@ public class GravityControl extends Gravity implements InteractiveGame {
 	public static final double ZOOM_FACTOR = 1.1;
 	public static final double MIN_ZOOM = 1e-12;
 	public static final double MAX_ZOOM = 1;
-	
+
 	public GravityControl() {
 		super();
 		addKeyListener(this);
@@ -23,11 +25,25 @@ public class GravityControl extends Gravity implements InteractiveGame {
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
 	}
-	
+
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
-
+		
+		// clear body shift
+		setBodyRefPoint(new Vector2D(0, 0));
+		
+		for (GameBody body : getBodyList()) {
+			body.setSelected(false);
+			Vector2D mousePos = new Vector2D(e.getX(), e.getY());
+			mousePos = mousePos.subtract(getRefPoint());
+			mousePos = mousePos.scalarMultiply(1 / getRefSize());
+			// TODO translate body coordinates
+			if (Vector2DUtils.isPosInside(body, mousePos)) {
+				body.setSelected(true);
+				setBodyRefPoint(body.getCenter());
+			}
+		}
 	}
 
 	@Override
