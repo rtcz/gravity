@@ -63,15 +63,25 @@ public class PixelBody {
 
 		// trajectory
 		g.setStroke(new BasicStroke(1));
-		g.setColor(Color.ORANGE);
 
-		int[] xPoints = new int[body.getTrajectory().size()];
-		int[] yPoints = new int[body.getTrajectory().size()];
-		for (int i = 0; i < body.getTrajectory().size(); i++) {
-			xPoints[i] = (int) Math.round(body.getTrajectory().get(i).getX() * scale);
-			yPoints[i] = (int) Math.round(body.getTrajectory().get(i).getY() * scale);
+		Color trackColor = Color.ORANGE; 
+		int trackSize = body.getTrack().size();
+		for (int i = 0; i + 1 < trackSize; i++) {
+			int x1 = (int) (body.getTrack().get(i).getX() * scale);
+			int y1 = (int) (body.getTrack().get(i).getY() * scale);
+			int x2 = (int) (body.getTrack().get(i + 1).getX() * scale);
+			int y2 = (int) (body.getTrack().get(i + 1).getY() * scale);
+			
+			// number of segments is trackSize - 1, current segment is i + 1
+			double fraction = (double) (i + 1) / (double) (trackSize - 1);
+			
+			int red = (int) (trackColor.getRed() * fraction);
+			int green = (int) (trackColor.getGreen() * fraction);
+			int blue = (int) (trackColor.getBlue() * fraction);
+			
+			g.setColor(new Color(red, green, blue));
+			g.drawLine(x1, y1, x2, y2);
 		}
-		g.drawPolyline(xPoints, yPoints, body.getTrajectory().size());
 		
 		
 		

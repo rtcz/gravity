@@ -40,7 +40,7 @@ public class Gravity extends GameCanvas {
 	private double refScale = 1e-6;
 	
 	private JCheckBox trackCheck = new JCheckBox("Show track");
-	private JCheckBox trackFadeCheck = new JCheckBox("Fade track");
+	private JCheckBox trackLimitCheck = new JCheckBox("Limit track");
 	
 	private SpeedSlider slider = new SpeedSlider();
 
@@ -52,8 +52,8 @@ public class Gravity extends GameCanvas {
 		trackCheck.setOpaque(false);
 		trackCheck.setForeground(Color.WHITE);
 		
-		trackFadeCheck.setOpaque(false);
-		trackFadeCheck.setForeground(Color.WHITE);
+		trackLimitCheck.setOpaque(false);
+		trackLimitCheck.setForeground(Color.WHITE);
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class Gravity extends GameCanvas {
 		bottomPanel.setLayout(new FlowLayout());
 		
 		bottomPanel.add(trackCheck);
-		bottomPanel.add(trackFadeCheck);
+		bottomPanel.add(trackLimitCheck);
 		bottomPanel.add(slider);
 
 		add(bottomPanel, BorderLayout.SOUTH);
@@ -138,22 +138,22 @@ public class Gravity extends GameCanvas {
 
 			// trajectory
 			if (trackCheck.isSelected()) {
-				if (body.getTrajectory().isEmpty()) {
-					body.addTrajectoryPoint(newCenter);
+				if (body.getTrack().isEmpty()) {
+					body.addTrackPoint(newCenter);
 				} else {
-					Vector2D prevPos = body.getLastTrajectoryPoint();
+					Vector2D prevPos = body.getLastTrackPoint();
 					if (prevPos.distance(newCenter) > body.getVelocity().getNorm()) {
-						body.addTrajectoryPoint(newCenter);
+						body.addTrackPoint(newCenter);
 					} else {
-						body.addTrajectoryPoint(newCenter, true);
+						body.addTrackPoint(newCenter, true);
 					}
 				}	
 			} else {
-				body.clearTrajectory();
+				body.clearTrack();
 			}
-			if (trackFadeCheck.isSelected()) {
-				while (body.getTrajectory().size() > GameConstants.MAX_TRACK_SEGMENTS) {
-					body.getTrajectory().remove(0);	
+			if (trackLimitCheck.isSelected()) {
+				while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
+					body.getTrack().remove(0);	
 				}
 			}
 		}
@@ -195,7 +195,6 @@ public class Gravity extends GameCanvas {
 
 		for (GameBody body : bodies) {
 			// the body
-			// TODO create PixelBody object
 			PixelBody pBody = new PixelBody(body, refScale);
 			pBody.draw(gg);
 		}

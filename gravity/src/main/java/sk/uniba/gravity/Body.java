@@ -82,18 +82,18 @@ public class Body extends Circle {
 		return "R " + getRadius() / 1000f + " KM";
 	}
 	
-	public Vector2D getLastTrajectoryPoint() {
+	public Vector2D getLastTrackPoint() {
 		if (trajectory.isEmpty()) {
 			return null;
 		}
 		return trajectory.get(trajectory.size() - 1);
 	}
 	
-	public void addTrajectoryPoint(Vector2D point) {
-		addTrajectoryPoint(point, false);
+	public void addTrackPoint(Vector2D point) {
+		addTrackPoint(point, false);
 	}
 	
-	public void addTrajectoryPoint(Vector2D point, boolean temp) {
+	public void addTrackPoint(Vector2D point, boolean temp) {
 		if (this.tempTrajectoryPoint) {
 			// if true, trajectory is not empty
 			trajectory.remove(trajectory.size() - 1);
@@ -102,11 +102,11 @@ public class Body extends Circle {
 		this.tempTrajectoryPoint = temp;
 	}
 	
-	public void clearTrajectory() {
+	public void clearTrack() {
 		trajectory.clear();
 	}
 	
-	public List<Vector2D> getTrajectory() {
+	public List<Vector2D> getTrack() {
 		return trajectory;
 	}
 }
