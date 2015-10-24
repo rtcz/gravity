@@ -23,6 +23,10 @@ public class Circle {
 	public void setCenter(Vector2D center) {
 		this.center = center;
 	}
+	
+	public void setRadius(double radius) {
+		this.radius = radius;
+	}
 
 	public double getRadius() {
 		return radius;

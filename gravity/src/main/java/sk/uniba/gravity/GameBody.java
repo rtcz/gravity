@@ -6,8 +6,8 @@ public class GameBody extends Body {
 
 	private boolean selected;
 
-	public GameBody(Vector2D center, double radius) {
-		super(center, radius);
+	public GameBody(String name) {
+		setName(name);
 	}
 
 	public void setSelected(boolean selected) {

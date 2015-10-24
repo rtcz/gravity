@@ -19,8 +19,8 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import sk.uniba.gravity.Body;
 import sk.uniba.gravity.GameBody;
 import sk.uniba.gravity.GameConstants;
-import sk.uniba.gravity.Length;
-import sk.uniba.gravity.PixelBody;
+import sk.uniba.gravity.Size;
+import sk.uniba.gravity.CanvasBody;
 import sk.uniba.gravity.Vector2DUtils;
 import sk.uniba.gravity.game.GameCanvas;
 import sk.uniba.gravity.game.GameManager;
@@ -39,8 +39,9 @@ public class Gravity extends GameCanvas {
 	private Vector2D relRefPoint;
 	private double refScale = 1e-6;
 	
-	private JCheckBox trackCheck = new JCheckBox("Show track");
-	private JCheckBox trackLimitCheck = new JCheckBox("Limit track");
+	private JCheckBox trackCheck = new JCheckBox("Show tracks");
+	private JCheckBox trackLimitCheck = new JCheckBox("Limit tracks");
+	private JCheckBox showNameCheck = new JCheckBox("Show names");
 	
 	private SpeedSlider slider = new SpeedSlider();
 
@@ -54,6 +55,9 @@ public class Gravity extends GameCanvas {
 		
 		trackLimitCheck.setOpaque(false);
 		trackLimitCheck.setForeground(Color.WHITE);
+		
+		showNameCheck.setOpaque(false);
+		showNameCheck.setForeground(Color.WHITE);
 	}
 
 	@Override
@@ -71,28 +75,84 @@ public class Gravity extends GameCanvas {
 		
 		bottomPanel.add(trackCheck);
 		bottomPanel.add(trackLimitCheck);
+		bottomPanel.add(showNameCheck);
 		bottomPanel.add(slider);
 
 		add(bottomPanel, BorderLayout.SOUTH);
-		
-		
 
 		// GAME STATE
 		absRefPoint = new Vector2D(0, 0);
 		
-		GameBody sun = new GameBody(new Vector2D(0, 0), 696.342e6);
+		GameBody sun = new GameBody("Sun");
+		sun.setRadius(696.342e6);
 		sun.setDensity(1408);
+		sun.setCenter(new Vector2D(+6.442860875172776e8, +2.748913433991132e8));
+		sun.setVelocity(new Vector2D(+3.151184859677259e0, -9.185194654328578e0));
 		bodies.add(sun);
+		
+		GameBody mercury = new GameBody("Mercury");
+		mercury.setRadius(2.440e6);
+		mercury.setDensity(5427);
+		mercury.setCenter(new Vector2D(+3.901558897485410e10, +2.904514484583830e10));
+		mercury.setVelocity(new Vector2D(+3.879081706909912e4, -4.110223749127960e4));
+		bodies.add(mercury);
+		
+		GameBody venus = new GameBody("Venus");
+		venus.setRadius(6.052e6);
+		venus.setDensity(5204);
+		venus.setCenter(new Vector2D(-4.733027208737938e9, -1.083207490477231e11));
+		venus.setVelocity(new Vector2D(-3.473833166185593e4, +1.856561942705289e3));
+		bodies.add(venus);
 
-		GameBody earth = new GameBody(new Vector2D(1.496e11, 0), 6.371e6);
+		GameBody earth = new GameBody("Earth");
+		earth.setRadius(6.371e6);
 		earth.setDensity(5515);
-		earth.setVelocity(new Vector2D(0, -29800));
+		earth.setCenter(new Vector2D(-2.636314250687937e10, +1.448755934863529e11));
+		earth.setVelocity(new Vector2D(+2.977359332571185e4, +5.558856867535258e3));
 		bodies.add(earth);
 
-		GameBody moon = new GameBody(new Vector2D(1.496e11 + 384.4e6, 0), 1.737e6);
-		moon.setDensity(3346);
-		moon.setVelocity(new Vector2D(0, -1023 + -29800));
+		GameBody moon = new GameBody("Moon");
+		moon.setRadius(1.737e6);
+		moon.setDensity(3344);
+		moon.setCenter(new Vector2D(-2.674751557311480e10, +1.448001055998542e11));
+		moon.setVelocity(new Vector2D(+2.951864258933297e4, +6.520608815172885e3));
+		moon.setName("Moon");
 		bodies.add(moon);
+		
+		GameBody mars = new GameBody("Mars");
+		mars.setRadius(3.389e6);
+		mars.setDensity(3933);
+		mars.setCenter(new Vector2D(+1.990267404151246e11, +7.450413194711113e10));
+		mars.setVelocity(new Vector2D(+7.560777278212286e3, -2.477045044227772e4));
+		bodies.add(mars);
+		
+		GameBody jupiter = new GameBody("Jupiter");
+		jupiter.setRadius(69.911e6);
+		jupiter.setDensity(1326);
+		jupiter.setCenter(new Vector2D(-7.490058923334916e11, -3.198963469183056e11));
+		jupiter.setVelocity(new Vector2D(-4.979372438187077e3, +1.140864406048834e4));
+		bodies.add(jupiter);
+		
+		GameBody saturn = new GameBody("Saturn");
+		saturn.setRadius(58.232e6);
+		saturn.setDensity(687);
+		saturn.setCenter(new Vector2D(+1.0834503736344e12, +8.513589639615979e11));
+		saturn.setVelocity(new Vector2D(+6.490272474127367e3, -7.575137301499483e3));
+		bodies.add(saturn);
+		
+		GameBody uranus = new GameBody("Uranus");
+		uranus.setRadius(25.362e6);
+		uranus.setDensity(1318);
+		uranus.setCenter(new Vector2D(-2.723971684699241e12, -2.891270404270630e11));
+		uranus.setVelocity(new Vector2D(-6.680837052483795e2, +7.089916083324248e3));
+		bodies.add(uranus);
+		
+		GameBody neptune = new GameBody("Neptune");
+		neptune.setRadius(24.624);
+		neptune.setDensity(1638);
+		neptune.setCenter(new Vector2D(-2.327426565170483e12, -3.890812806779972e12));
+		neptune.setVelocity(new Vector2D(-4.630808049976979e3, +2.758234623717156e3));
+		bodies.add(neptune);
 	}
 
 	@Override
@@ -148,10 +208,8 @@ public class Gravity extends GameCanvas {
 						body.addTrackPoint(newCenter, true);
 					}
 				}	
-			} else {
-				body.clearTrack();
 			}
-			if (trackLimitCheck.isSelected()) {
+			if (!trackCheck.isSelected() || trackLimitCheck.isSelected()) {
 				while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
 					body.getTrack().remove(0);	
 				}
@@ -195,8 +253,17 @@ public class Gravity extends GameCanvas {
 
 		for (GameBody body : bodies) {
 			// the body
-			PixelBody pBody = new PixelBody(body, refScale);
-			pBody.draw(gg);
+			CanvasBody cBody = new CanvasBody(body, refScale);
+			if (trackCheck.isSelected()) {
+				cBody.drawTrajectory(gg);
+			}
+			cBody.drawBody(gg);
+			if (body.isSelected()) {
+				cBody.drawSelection(gg);	
+			}
+			if (showNameCheck.isSelected()) {
+				cBody.drawName(gg);	
+			}
 		}
 
 		// simulation info
@@ -208,8 +275,8 @@ public class Gravity extends GameCanvas {
 		String dateValue = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date);
 		g.drawString("TIME " + dateValue, 10, 60);
 
-		Length length = new Length(1 / refScale);
-		g.drawString("SCALE 1px = " + length, 10, 80);
+		Size size = new Size(1 / refScale);
+		g.drawString("SCALE 1px = " + size, 10, 80);
 
 		// reference cross
 		g.setColor(Color.WHITE);
@@ -224,14 +291,6 @@ public class Gravity extends GameCanvas {
 	protected void setAbsRefPoint(Vector2D refPoint) {
 		this.absRefPoint = refPoint;
 	}
-	
-//	protected Vector2D getBodyRefPoint() {
-//		return relRefPoint;
-//	}
-//
-//	protected void setBodyRefPoint(Vector2D bodyRefPoint) {
-//		this.relRefPoint = bodyRefPoint;
-//	}
 
 	protected double getRefScale() {
 		return refScale;

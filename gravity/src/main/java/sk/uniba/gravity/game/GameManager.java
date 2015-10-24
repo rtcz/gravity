@@ -32,8 +32,6 @@ public class GameManager {
 	private double speedMultiplier = 1;
 
 	private JFrame window = new JFrame();
-	
-	//private JCheckBox trajectoryCheck = new JCheckBox("Show trajectory");
 
 	/**
 	 * desired duration of one game loop in miliseconds
@@ -82,33 +80,6 @@ public class GameManager {
 		}
 		window.setContentPane(canvas);
 		window.setLayout(new BorderLayout());
-
-//		trajectoryCheck.setOpaque(false);
-//		trajectoryCheck.setForeground(Color.WHITE);
-//		
-//		SpeedSlider slider = new SpeedSlider(this);
-//		
-//		JPanel bottomPanel = new JPanel();
-//		bottomPanel.setOpaque(false);
-//		bottomPanel.setLayout(new FlowLayout());
-//		
-//		bottomPanel.add(trajectoryCheck);
-//		bottomPanel.add(slider);
-//
-//		canvas.add(bottomPanel, BorderLayout.SOUTH);
-
-		// menu
-//		JMenuBar menubar = new JMenuBar();
-//		JMenu gameMenu = new JMenu("Game");
-//
-//		JMenuItem eMenuItem = new JMenuItem("Exit");
-//		eMenuItem.addActionListener(event -> System.exit(0));
-//
-//		gameMenu.add(eMenuItem);
-//		menubar.add(gameMenu);
-//
-//		window.setJMenuBar(menubar);
-
 		window.setVisible(true);
 	}
 
@@ -136,7 +107,7 @@ public class GameManager {
 			if (currTime > updateTime) {
 				double delta = (currTime - lastTime);
 				lastTime = currTime;
-				//updateTime += deltaTime * (1 / speedMultiplier);
+				// updateTime += deltaTime * (1 / speedMultiplier);
 				updateTime += deltaTime;
 				gameTime += delta * speedMultiplier;
 
@@ -180,10 +151,6 @@ public class GameManager {
 	public void setSpeedMultiplier(double multiplier) {
 		this.speedMultiplier = multiplier;
 	}
-	
-//	public boolean getShowTracks() {
-//		return trajectoryCheck.isSelected();
-//	}
 
 	public double getGameSpeed() {
 		return speedMultiplier;

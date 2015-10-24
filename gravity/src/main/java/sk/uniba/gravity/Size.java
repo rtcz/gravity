@@ -2,23 +2,23 @@ package sk.uniba.gravity;
 
 import java.text.DecimalFormat;
 
-public class Length {
+public class Size {
 
-	private double length;
+	private double size;
 	private boolean convertUnits;
 	private boolean displayUnits;
 	
 	/**
-	 * @param length in meters
+	 * @param size in meters
 	 */
-	public Length(double length) {
-		this.length = length;
+	public Size(double size) {
+		this.size = size;
 		this.displayUnits = true;
 		this.convertUnits = true;
 	}
 	
 	public double getLength() {
-		return length;
+		return size;
 	}
 	
 	public void convertUnits(boolean convertUnits) {
@@ -32,22 +32,22 @@ public class Length {
 	@Override
 	public String toString() {
 		String unit = "m";
-		double dLength = length;
+		double dSize = size;
 		
 		if (convertUnits) {
-			if (dLength >= 1e3 && dLength < 1e9) {
-				dLength *= 1e-3; 
+			if (dSize >= 1e3 && dSize < 1e9) {
+				dSize *= 1e-3; 
 				unit = "km";
-			} else if (dLength >= 1e9) {
-				dLength *= 1e-9; 
+			} else if (dSize >= 1e9) {
+				dSize *= 1e-9; 
 				unit = "mil. km";
 			}
 		}
 		
 		DecimalFormat format = new DecimalFormat(",##0.000");
 		if (displayUnits) {
-			return format.format(dLength) + " " + unit;
+			return format.format(dSize) + " " + unit;
 		}
-		return format.format(dLength);
+		return format.format(dSize);
 	}
 }
