@@ -32,11 +32,11 @@ public class Circle {
 		return radius * 2;
 	}
 	
-	public double getTopLeftX() {
-		return center.getX() - radius;
-	}
-	
-	public double getTopLeftY() {
-		return center.getY() - radius;
-	}
+//	public double getTopLeftX() {
+//		return center.getX() - radius;
+//	}
+//	
+//	public double getTopLeftY() {
+//		return center.getY() - radius;
+//	}
 }

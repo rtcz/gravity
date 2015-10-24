@@ -1,30 +1,25 @@
 package sk.uniba.gravity.game;
 
+import java.awt.BorderLayout;
 import javax.swing.JFrame;
+import sk.uniba.gravity.GameConstants;
 
 public class GameManager {
 
-	public static final int WIDTH = 800;
-	public static final int HEIGHT = 600;
+	public static final int WIDTH = GameConstants.WINDOW_WIDTH;
+	public static final int HEIGHT = GameConstants.WINDOW_HEIGHT;
 
-	public static final int MAX_SKIPPED_FRAMES = 5;
+	public static final int MAX_SKIPPED_FRAMES = GameConstants.MAX_SKIPPED_FRAMES;
 
-	public static final int DESIRED_FPS = 60;
-	public static final int MIN_FPS = 12;
-	public static final double MAX_LAG_MS = 250;
+	public static final int DESIRED_FPS = GameConstants.DESIRED_FPS;
+	public static final int MIN_FPS = GameConstants.MIN_FPS;
+	public static final double MAX_LAG_MS = GameConstants.MAX_LAG_MS;
 
 	private static boolean syncUpdates = true;
 	private static boolean syncRenders = true;
 
-	/** last time FPS was recorded */
-	private long fpsRecorded;
-
-	/**
-	 * last recorded FPS
-	 */
-	private int fps;
-
-	private int fpsCounter;
+	private UpdatesPerSecond fps = new UpdatesPerSecond();
+	private UpdatesPerSecond ups = new UpdatesPerSecond();
 
 	private long gameTime;
 
@@ -34,22 +29,23 @@ public class GameManager {
 
 	private boolean fullscreen;
 
-	private double gameSpeed = 1;
+	private double speedMultiplier = 1;
 
 	private JFrame window = new JFrame();
+	
+	//private JCheckBox trajectoryCheck = new JCheckBox("Show trajectory");
 
 	/**
 	 * desired duration of one game loop in miliseconds
 	 */
-	private double deltaTime = 1_000d / DESIRED_FPS;
+	private double deltaTime = 1_000d / (double) DESIRED_FPS;
 
 	private GameCanvas canvas;
 
 	public GameManager(GameCanvas canvas) {
 		this.canvas = canvas;
-		// set window to center of the screen
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setDisplayMode(WIDTH, HEIGHT, false);
+		setDisplayMode(GameConstants.WINDOW_WIDTH, GameConstants.WINDOW_HEIGHT, false);
 	}
 
 	/**
@@ -80,10 +76,39 @@ public class GameManager {
 			window.setUndecorated(true);
 			window.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		} else {
+			// set window to center of the screen
 			window.setLocationRelativeTo(null);
 			window.setResizable(false);
 		}
 		window.setContentPane(canvas);
+		window.setLayout(new BorderLayout());
+
+//		trajectoryCheck.setOpaque(false);
+//		trajectoryCheck.setForeground(Color.WHITE);
+//		
+//		SpeedSlider slider = new SpeedSlider(this);
+//		
+//		JPanel bottomPanel = new JPanel();
+//		bottomPanel.setOpaque(false);
+//		bottomPanel.setLayout(new FlowLayout());
+//		
+//		bottomPanel.add(trajectoryCheck);
+//		bottomPanel.add(slider);
+//
+//		canvas.add(bottomPanel, BorderLayout.SOUTH);
+
+		// menu
+//		JMenuBar menubar = new JMenuBar();
+//		JMenu gameMenu = new JMenu("Game");
+//
+//		JMenuItem eMenuItem = new JMenuItem("Exit");
+//		eMenuItem.addActionListener(event -> System.exit(0));
+//
+//		gameMenu.add(eMenuItem);
+//		menubar.add(gameMenu);
+//
+//		window.setJMenuBar(menubar);
+
 		window.setVisible(true);
 	}
 
@@ -94,8 +119,9 @@ public class GameManager {
 	public void run() {
 		setup();
 		canvas.init(this);
-		long nextTime = getTime();
-		long lastTime = getTime();
+		double updateTime = getTime();
+		// double renderTime = getTime();
+		double lastTime = getTime();
 		int skippedFrames = 0;
 		int maxSkippedFrames = DESIRED_FPS / MIN_FPS;
 		gameTime = 0;
@@ -103,34 +129,39 @@ public class GameManager {
 			long currTime = getTime();
 			if (syncUpdates) {
 				// remove gap between logic and graphics
-				if ((currTime - nextTime) > MAX_LAG_MS) {
-					nextTime = currTime;
+				if ((currTime - updateTime) > MAX_LAG_MS) {
+					updateTime = currTime;
 				}
 			}
-			if (currTime > nextTime) {
+			if (currTime > updateTime) {
 				double delta = (currTime - lastTime);
 				lastTime = currTime;
-				nextTime += deltaTime;
-				gameTime += delta * gameSpeed;
-				canvas.update(delta * gameSpeed);
+				//updateTime += deltaTime * (1 / speedMultiplier);
+				updateTime += deltaTime;
+				gameTime += delta * speedMultiplier;
 
+				ups.update();
+				canvas.update(delta * speedMultiplier);
+
+				// if (currTime > renderTime) {
+				// renderTime += deltaTime;
 				if (syncRenders) {
 					// render extra frames if fps if too low
-					if ((currTime < nextTime) || skippedFrames > maxSkippedFrames) {
-						updateFps();
+					if ((currTime < updateTime) || skippedFrames > maxSkippedFrames) {
+						fps.update();
 						canvas.render();
 						skippedFrames = 0;
 					} else {
 						skippedFrames++;
 					}
-				} else if (currTime < nextTime) {
-					updateFps();
+				} else if (currTime < updateTime) {
+					fps.update();
 					canvas.render();
 				}
-
+				// }
 			} else {
 				// game is up to date, it has time to sleep now
-				int sleepTime = (int) (nextTime - currTime);
+				int sleepTime = (int) (updateTime - currTime);
 				// safety check
 				if (sleepTime > 0) {
 					try {
@@ -143,28 +174,27 @@ public class GameManager {
 	}
 
 	/**
-	 * @param speed
-	 *            multiplier, 1 is for realtime
+	 * @param multiplier
+	 *            1 is for realtime
 	 */
-	public void setGameSpeed(double speed) {
-		this.gameSpeed = speed;
+	public void setSpeedMultiplier(double multiplier) {
+		this.speedMultiplier = multiplier;
 	}
+	
+//	public boolean getShowTracks() {
+//		return trajectoryCheck.isSelected();
+//	}
 
 	public double getGameSpeed() {
-		return gameSpeed;
-	}
-
-	public void updateFps() {
-		if (getTime() - fpsRecorded > 1_000) {
-			fpsRecorded = getTime();
-			fps = fpsCounter;
-			fpsCounter = 0;
-		}
-		fpsCounter++;
+		return speedMultiplier;
 	}
 
 	public int getFps() {
-		return fps;
+		return fps.getCount();
+	}
+
+	public int getUps() {
+		return ups.getCount();
 	}
 
 	public long getGameTime() {

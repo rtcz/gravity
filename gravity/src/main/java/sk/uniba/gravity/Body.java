@@ -1,6 +1,5 @@
 package sk.uniba.gravity;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,12 +8,6 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import sk.uniba.gravity.shape.Circle;
 
 public class Body extends Circle {
-
-	/**
-	 * Gravitational constant
-	 * 6.674×10−11 N⋅m2/kg2 
-	 */
-	public static final double G_CONSTANT = 6.674e-11;
 	
 	/**
 	 * Density of water 1000 kg/m3
@@ -30,6 +23,8 @@ public class Body extends Circle {
 	
 	private List<Vector2D> trajectory = new ArrayList<Vector2D>();
 	
+	private String name;
+
 	/**
 	 * true if last trajectory point is temporary
 	 */
@@ -50,15 +45,6 @@ public class Body extends Circle {
 		return volume * density;
 	}
 
-	public Color getColor() {
-		// TODO involve density
-		int colorValue = 255 - (int) Math.log10(getRadius()) * 10;
-		if (colorValue < 128) {
-			colorValue = 128;
-		}
-		return new Color(colorValue, colorValue, colorValue);
-	}
-
 	public void setDensity(double density) {
 		this.density = density;
 	}
@@ -77,6 +63,18 @@ public class Body extends Circle {
 	
 	public Vector2D getVelocity() {
 		return velocity;
+	}
+	
+	public String getName() {
+		if (name == null) {
+			
+		}
+		return name;
+	}
+
+	
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	@Override
@@ -102,6 +100,10 @@ public class Body extends Circle {
 		}
 		trajectory.add(point);
 		this.tempTrajectoryPoint = temp;
+	}
+	
+	public void clearTrajectory() {
+		trajectory.clear();
 	}
 	
 	public List<Vector2D> getTrajectory() {

@@ -7,6 +7,7 @@ import java.awt.event.MouseWheelEvent;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.GameBody;
+import sk.uniba.gravity.GameConstants;
 import sk.uniba.gravity.Vector2DUtils;
 import sk.uniba.gravity.game.InteractiveGame;
 
@@ -14,9 +15,11 @@ public class GravityControl extends Gravity implements InteractiveGame {
 
 	private static final long serialVersionUID = -5192501583994098342L;
 
-	public static final double ZOOM_FACTOR = 1.1;
-	public static final double MIN_ZOOM = 1e-12;
-	public static final double MAX_ZOOM = 1;
+	public static final double ZOOM_FACTOR = GameConstants.ZOOM_FACTOR;
+	public static final double MIN_ZOOM = GameConstants.MIN_ZOOM;
+	public static final double MAX_ZOOM = GameConstants.MAX_ZOOM;
+
+	private Vector2D startDragPos;
 
 	public GravityControl() {
 		super();
@@ -28,32 +31,28 @@ public class GravityControl extends Gravity implements InteractiveGame {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-		// clear body shift
-		setBodyRefPoint(new Vector2D(0, 0));
-		
+		bodySelected(null);
 		for (GameBody body : getBodyList()) {
 			body.setSelected(false);
 			Vector2D mousePos = new Vector2D(e.getX(), e.getY());
-			mousePos = mousePos.subtract(getRefPoint());
-			mousePos = mousePos.scalarMultiply(1 / getRefSize());
+			mousePos = mousePos.subtract(getAbsRefPoint());
+			mousePos = mousePos.scalarMultiply(1 / getRefScale());
 			// TODO translate body coordinates
 			if (Vector2DUtils.isPosInside(body, mousePos)) {
 				body.setSelected(true);
-				setBodyRefPoint(body.getCenter());
+				bodySelected(body);
 			}
 		}
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-
+		startDragPos = new Vector2D(e.getX(), e.getY());
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		lastDragPos = null;
+
 	}
 
 	@Override
@@ -86,18 +85,13 @@ public class GravityControl extends Gravity implements InteractiveGame {
 
 	}
 
-	Vector2D lastDragPos;
-
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		if (lastDragPos == null) {
-			lastDragPos = new Vector2D(e.getX(), e.getY());
-		}
-		Vector2D newDragPos = new Vector2D(e.getX(), e.getY());
-		Vector2D move = lastDragPos.subtract(newDragPos);
+		Vector2D endDragPos = new Vector2D(e.getX(), e.getY());
+		Vector2D move = startDragPos.subtract(endDragPos);
 
-		setRefPoint(getRefPoint().subtract(move));
-		lastDragPos = newDragPos;
+		setAbsRefPoint(getAbsRefPoint().subtract(move));
+		startDragPos = endDragPos;
 	}
 
 	@Override
@@ -117,20 +111,20 @@ public class GravityControl extends Gravity implements InteractiveGame {
 		}
 
 		// max zoom limit
-		if (getRefSize() * zoom > MAX_ZOOM) {
-			zoom = MAX_ZOOM / getRefSize();
+		if (getRefScale() * zoom > MAX_ZOOM) {
+			zoom = MAX_ZOOM / getRefScale();
 		}
 		// min zoom limit
-		if (getRefSize() * zoom < MIN_ZOOM) {
-			zoom = MIN_ZOOM / getRefSize();
+		if (getRefScale() * zoom < MIN_ZOOM) {
+			zoom = MIN_ZOOM / getRefScale();
 		}
 
 		Vector2D mousePos = new Vector2D(e.getX(), e.getY());
-		Vector2D mouseRefPos = getRefPoint().subtract(mousePos);
+		Vector2D mouseRefPos = getAbsRefPoint().subtract(mousePos);
 		Vector2D zoomedRefPos = mouseRefPos.scalarMultiply(zoom);
 		Vector2D move = mouseRefPos.subtract(zoomedRefPos);
 
-		setRefSize(getRefSize() * zoom);
-		setRefPoint(getRefPoint().subtract(move));
+		setRefScale(getRefScale() * zoom);
+		setAbsRefPoint(getAbsRefPoint().subtract(move));
 	}
 }
