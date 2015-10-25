@@ -133,12 +133,47 @@ public class Gravity extends GameCanvas {
 		jupiter.setVelocity(new Vector2D(-4.979372438187077e3, +1.140864406048834e4));
 		bodies.add(jupiter);
 		
+		GameBody io = new GameBody("Io");
+		io.setRadius(1.821e6);
+		io.setDensity(3530);
+		io.setCenter(new Vector2D(-7.492627120071737e11, -3.195614069659672e11));
+		io.setVelocity(new Vector2D(+8.722245915140697e3, +2.198947504781624e4));
+		bodies.add(io);
+		
+		GameBody europa = new GameBody("Europa");
+		europa.setRadius(1.565e6);
+		europa.setDensity(2900);
+		europa.setCenter(new Vector2D(-7.483389941256535e11, -3.199159550614262e11));
+		europa.setVelocity(new Vector2D(-5.275136182232703e3, -2.403014405114805e3));
+		bodies.add(europa);
+		
+		GameBody ganymede = new GameBody("Ganymede");
+		ganymede.setRadius(2.634e6);
+		ganymede.setDensity(1940);
+		ganymede.setCenter(new Vector2D(-7.480334529773365e11, -3.194466077682545e11));
+		ganymede.setVelocity(new Vector2D(-4.126443694580075e2, +1.551054916289784e3));
+		bodies.add(ganymede);
+		
+		GameBody callisto = new GameBody("Callisto");
+		callisto.setRadius(2.403e6);
+		callisto.setDensity(1851);
+		callisto.setCenter(new Vector2D(-7.501310477531239e11, -3.214068799222987e11));
+		callisto.setVelocity(new Vector2D(-1.158806579721592e4, +1.625231382195907e4));
+		bodies.add(callisto);
+		
 		GameBody saturn = new GameBody("Saturn");
 		saturn.setRadius(58.232e6);
 		saturn.setDensity(687);
 		saturn.setCenter(new Vector2D(+1.0834503736344e12, +8.513589639615979e11));
 		saturn.setVelocity(new Vector2D(+6.490272474127367e3, -7.575137301499483e3));
 		bodies.add(saturn);
+		
+		GameBody titan = new GameBody("Titan");
+		titan.setRadius(2.575e6);
+		titan.setDensity(1880);
+		titan.setCenter(new Vector2D(+1.083787721229425e12, +8.524014419156948e11));
+		titan.setVelocity(new Vector2D(+1.172823613448644e4, -9.246307961514402e3));
+		bodies.add(titan);
 		
 		GameBody uranus = new GameBody("Uranus");
 		uranus.setRadius(25.362e6);
@@ -148,11 +183,18 @@ public class Gravity extends GameCanvas {
 		bodies.add(uranus);
 		
 		GameBody neptune = new GameBody("Neptune");
-		neptune.setRadius(24.624);
+		neptune.setRadius(24.624e6);
 		neptune.setDensity(1638);
 		neptune.setCenter(new Vector2D(-2.327426565170483e12, -3.890812806779972e12));
 		neptune.setVelocity(new Vector2D(-4.630808049976979e3, +2.758234623717156e3));
 		bodies.add(neptune);
+		
+		GameBody triton = new GameBody("Triton");
+		triton.setRadius(1.352e6);
+		triton.setDensity(2054);
+		triton.setCenter(new Vector2D(-2.327179260794316e12, -3.890919849469012e12));
+		triton.setVelocity(new Vector2D(-1.879934244840464e3, +5.818844541445264e3));
+		bodies.add(triton);
 	}
 
 	@Override
@@ -192,8 +234,8 @@ public class Gravity extends GameCanvas {
 			}
 		}
 		for (Body body : bodies) {
-			Vector2D tVelocity = body.getVelocity().scalarMultiply(dSeconds);
-			Vector2D newCenter = body.getCenter().add(tVelocity);
+			Vector2D distance = body.getVelocity().scalarMultiply(dSeconds);
+			Vector2D newCenter = body.getCenter().add(distance);
 			body.setCenter(newCenter);
 
 			// trajectory
@@ -207,12 +249,14 @@ public class Gravity extends GameCanvas {
 					} else {
 						body.addTrackPoint(newCenter, true);
 					}
-				}	
-			}
-			if (!trackCheck.isSelected() || trackLimitCheck.isSelected()) {
-				while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
-					body.getTrack().remove(0);	
 				}
+				if (trackLimitCheck.isSelected()) {
+					while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
+						body.getTrack().remove(0);
+					}
+				}
+			} else {
+				body.clearTrack();
 			}
 		}
 	}
@@ -277,6 +321,8 @@ public class Gravity extends GameCanvas {
 
 		Size size = new Size(1 / refScale);
 		g.drawString("SCALE 1px = " + size, 10, 80);
+		
+		g.drawString("Body count " + bodies.size(), 10, 100);
 
 		// reference cross
 		g.setColor(Color.WHITE);

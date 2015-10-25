@@ -102,6 +102,12 @@ public class Body extends Circle {
 		trajectory.add(point);
 		this.tempTrajectoryPoint = temp;
 	}
+	
+//	public void limitTrack(int size) {
+//		if (trajectory.size() > size) {
+//			trajectory = trajectory.subList(trajectory.size() - size, trajectory.size() - 1);	
+//		}
+//	}
 
 	public void clearTrack() {
 		trajectory.clear();

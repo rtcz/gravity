@@ -3,6 +3,10 @@ package sk.uniba.gravity;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.List;
+
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.apache.commons.math3.stat.descriptive.moment.GeometricMean;
 
 public class CanvasBody {
 
@@ -50,16 +54,16 @@ public class CanvasBody {
 	public void drawTrajectory(Graphics2D g) {
 		g.setStroke(new BasicStroke(1));
 
-		Color trackColor = Color.ORANGE; 
-		int trackSize = body.getTrack().size();
-		for (int i = 0; i + 1 < trackSize; i++) {
-			int x1 = (int) (body.getTrack().get(i).getX() * scale);
-			int y1 = (int) (body.getTrack().get(i).getY() * scale);
-			int x2 = (int) (body.getTrack().get(i + 1).getX() * scale);
-			int y2 = (int) (body.getTrack().get(i + 1).getY() * scale);
+		Color trackColor = Color.ORANGE;
+		List<Vector2D> track = body.getTrack();
+		for (int i = 0; i + 1 < track.size(); i++) {
+			int x1 = (int) (track.get(i).getX() * scale);
+			int y1 = (int) (track.get(i).getY() * scale);
+			int x2 = (int) (track.get(i + 1).getX() * scale);
+			int y2 = (int) (track.get(i + 1).getY() * scale);
 			
 			// number of segments is trackSize - 1, current segment is i + 1
-			double fraction = (double) (i + 1) / (double) (trackSize - 1);
+			double fraction = (double) (i + 1) / (double) (track.size() - 1);
 			
 			int red = (int) (trackColor.getRed() * fraction);
 			int green = (int) (trackColor.getGreen() * fraction);
