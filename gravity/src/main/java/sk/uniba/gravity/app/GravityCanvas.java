@@ -27,7 +27,7 @@ import sk.uniba.gravity.game.GameManager;
 import sk.uniba.gravity.game.ui.SpeedSlider;
 import sk.uniba.gravity.shape.Cross;
 
-public class Gravity extends GameCanvas {
+public class GravityCanvas extends GameCanvas {
 
 	private static final long serialVersionUID = -4662105822647187214L;
 
@@ -44,8 +44,11 @@ public class Gravity extends GameCanvas {
 	private JCheckBox showNameCheck = new JCheckBox("Show names");
 	
 	private SpeedSlider slider = new SpeedSlider();
+	
+	protected Vector2D newBodyStart;	
+	protected Vector2D newBodyEnd;
 
-	public Gravity() {
+	public GravityCanvas() {
 		setDoubleBuffered(true);
 		setFocusable(true);
 		setBackground(Color.BLACK);
@@ -77,6 +80,11 @@ public class Gravity extends GameCanvas {
 		bottomPanel.add(trackLimitCheck);
 		bottomPanel.add(showNameCheck);
 		bottomPanel.add(slider);
+		
+		trackCheck.setFocusable(false);
+		trackLimitCheck.setFocusable(false);
+		showNameCheck.setFocusable(false);
+		slider.setFocusable(false);
 
 		add(bottomPanel, BorderLayout.SOUTH);
 
@@ -306,8 +314,14 @@ public class Gravity extends GameCanvas {
 				cBody.drawSelection(gg);	
 			}
 			if (showNameCheck.isSelected()) {
-				cBody.drawName(gg);	
+				cBody.drawName(gg);
 			}
+		}
+		
+		// new body vector
+		if (newBodyStart != null && newBodyEnd != null) {
+			g.setColor(Color.RED);
+			g.drawLine((int) newBodyStart.getX(), (int) newBodyStart.getY(), (int) newBodyEnd.getX(), (int) newBodyEnd.getY());	
 		}
 
 		// simulation info
@@ -328,6 +342,10 @@ public class Gravity extends GameCanvas {
 		g.setColor(Color.WHITE);
 		Cross reference = new Cross(absRefPoint, 10);
 		reference.draw(g);
+	}
+	
+	public void addBody() {
+		// TODO
 	}
 
 	protected Vector2D getAbsRefPoint() {

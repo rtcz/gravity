@@ -11,7 +11,7 @@ import sk.uniba.gravity.GameConstants;
 import sk.uniba.gravity.Vector2DUtils;
 import sk.uniba.gravity.game.InteractiveGame;
 
-public class GravityControl extends Gravity implements InteractiveGame {
+public class GravityGame extends GravityCanvas implements InteractiveGame {
 
 	private static final long serialVersionUID = -5192501583994098342L;
 
@@ -20,8 +20,10 @@ public class GravityControl extends Gravity implements InteractiveGame {
 	public static final double MAX_ZOOM = GameConstants.MAX_ZOOM;
 
 	private Vector2D startDragPos;
+	
+	private boolean isDragAction;
 
-	public GravityControl() {
+	public GravityGame() {
 		super();
 		addKeyListener(this);
 		addMouseListener(this);
@@ -47,12 +49,21 @@ public class GravityControl extends Gravity implements InteractiveGame {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+		requestFocus();
 		startDragPos = new Vector2D(e.getX(), e.getY());
+		
+		if (!isDragAction) {
+			newBodyStart = startDragPos;
+		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-
+		if (!isDragAction) {
+			addBody();
+		}
+		newBodyStart = null;
+		newBodyEnd = null;
 	}
 
 	@Override
@@ -75,22 +86,27 @@ public class GravityControl extends Gravity implements InteractiveGame {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-
+		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+			isDragAction = true;
+		}
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-
+		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+			isDragAction = false;
+		}
 	}
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		Vector2D endDragPos = new Vector2D(e.getX(), e.getY());
-		Vector2D move = startDragPos.subtract(endDragPos);
-
-		setAbsRefPoint(getAbsRefPoint().subtract(move));
+		if (isDragAction) {
+			Vector2D move = startDragPos.subtract(endDragPos);
+			setAbsRefPoint(getAbsRefPoint().subtract(move));	
+		} else {
+			newBodyEnd = endDragPos;
+		}
 		startDragPos = endDragPos;
 	}
 

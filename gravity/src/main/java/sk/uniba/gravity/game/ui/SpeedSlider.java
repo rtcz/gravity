@@ -7,10 +7,6 @@ import java.util.Hashtable;
 
 import javax.swing.JLabel;
 import javax.swing.JSlider;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import sk.uniba.gravity.game.GameManager;
 
 public class SpeedSlider extends JSlider {// implements ChangeListener {
 
