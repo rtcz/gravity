@@ -9,6 +9,7 @@ public class Main {
 		GameManager manager = new GameManager(new GravityGame());
 		manager.setTitle("Hra hier");
 		manager.setDisplayMode(1280, 1024, false);
+		//manager.setDisplayMode(1280, 1024, true);
 		manager.run();
 	}
 

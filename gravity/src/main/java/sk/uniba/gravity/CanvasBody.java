@@ -6,7 +6,6 @@ import java.awt.Graphics2D;
 import java.util.List;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
-import org.apache.commons.math3.stat.descriptive.moment.GeometricMean;
 
 public class CanvasBody {
 
@@ -31,7 +30,7 @@ public class CanvasBody {
 	public int getSize() {
 		return (int) Math.round(body.getSize() * scale);
 	}
-	
+
 	public Color getColor() {
 		// TODO involve density
 		int colorValue = 255 - (int) Math.log10(body.getRadius()) * 10;
@@ -40,7 +39,7 @@ public class CanvasBody {
 		}
 		return new Color(colorValue, colorValue, colorValue);
 	}
-	
+
 	public int getCenterX() {
 		double tmp = body.getCenter().getX();
 		return (int) Math.round(tmp * scale);
@@ -50,7 +49,7 @@ public class CanvasBody {
 		double tmp = body.getCenter().getY();
 		return (int) Math.round(tmp * scale);
 	}
-	
+
 	public void drawTrajectory(Graphics2D g) {
 		g.setStroke(new BasicStroke(1));
 
@@ -61,19 +60,20 @@ public class CanvasBody {
 			int y1 = (int) (track.get(i).getY() * scale);
 			int x2 = (int) (track.get(i + 1).getX() * scale);
 			int y2 = (int) (track.get(i + 1).getY() * scale);
-			
+
 			// number of segments is trackSize - 1, current segment is i + 1
 			double fraction = (double) (i + 1) / (double) (track.size() - 1);
-			
+
 			int red = (int) (trackColor.getRed() * fraction);
 			int green = (int) (trackColor.getGreen() * fraction);
 			int blue = (int) (trackColor.getBlue() * fraction);
-			
-			g.setColor(new Color(red, green, blue));
+			int alpha = (int) (255 * fraction);
+
+			g.setColor(new Color(red, green, blue, alpha));
 			g.drawLine(x1, y1, x2, y2);
 		}
 	}
-	
+
 	public void drawSelection(Graphics2D g) {
 		int size = getSize();
 		g.setColor(Color.CYAN);
@@ -83,12 +83,17 @@ public class CanvasBody {
 		g.setStroke(new BasicStroke(strokeWidth));
 		g.drawOval(getX() + strokeOffset, getY() + strokeOffset, strokeSize, strokeSize);
 	}
-	
+
 	public void drawName(Graphics2D g) {
-		g.setColor(Color.WHITE);
+		int alpha = 255;
+		if (getSize() == 0) {
+			// TODO refine, use log or something
+			alpha *= body.getSize() * scale;
+		}
+		g.setColor(new Color(255, 255, 255, alpha));
 		g.drawString(body.getName(), getCenterX(), getCenterY());
 	}
-	
+
 	public void drawBody(Graphics2D g) {
 		int size = getSize();
 		g.setColor(getColor());

@@ -6,6 +6,8 @@ public class GameBody extends Body {
 
 	private boolean selected;
 
+	public GameBody() {}
+
 	public GameBody(String name) {
 		setName(name);
 	}
@@ -17,7 +19,7 @@ public class GameBody extends Body {
 	public boolean isSelected() {
 		return selected;
 	}
-	
+
 	public void setCenter(Vector2D center) {
 		super.setCenter(center);
 	}

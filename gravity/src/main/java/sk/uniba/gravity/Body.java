@@ -17,7 +17,7 @@ public class Body extends Circle {
 	/**
 	 * m/s
 	 */
-	private Vector2D velocity;
+	private Vector2D velocity = new Vector2D(0, 0);
 
 	/**
 	 * kg/m^3
@@ -48,6 +48,9 @@ public class Body extends Circle {
 	}
 
 	public void setDensity(double density) {
+		if (density == 0) {
+			throw new IllegalArgumentException("Body can not have zero density");
+		}
 		this.density = density;
 	}
 

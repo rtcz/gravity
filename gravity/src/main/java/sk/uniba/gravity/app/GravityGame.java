@@ -4,6 +4,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.GameBody;
@@ -19,10 +21,6 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 	public static final double MIN_ZOOM = GameConstants.MIN_ZOOM;
 	public static final double MAX_ZOOM = GameConstants.MAX_ZOOM;
 
-	private Vector2D startDragPos;
-	
-	private boolean isDragAction;
-
 	public GravityGame() {
 		super();
 		addKeyListener(this);
@@ -33,37 +31,39 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		bodySelected(null);
-		for (GameBody body : getBodyList()) {
-			body.setSelected(false);
-			Vector2D mousePos = new Vector2D(e.getX(), e.getY());
-			mousePos = mousePos.subtract(getAbsRefPoint());
-			mousePos = mousePos.scalarMultiply(1 / getRefScale());
-			// TODO translate body coordinates
-			if (Vector2DUtils.isPosInside(body, mousePos)) {
-				body.setSelected(true);
-				bodySelected(body);
-			}
+		
+		if (SwingUtilities.isRightMouseButton(e)) {
+			bodySelected(null);
+			for (GameBody body : getBodyList()) {
+				body.setSelected(false);
+				Vector2D mousePos = new Vector2D(e.getX(), e.getY());
+				mousePos = mousePos.subtract(getAbsRefPoint());
+				mousePos = mousePos.scalarMultiply(1 / getRefScale());
+				// TODO translate body coordinates
+				if (Vector2DUtils.isPosInside(body, mousePos)) {
+					body.setSelected(true);
+					bodySelected(body);
+				}
+			}	
 		}
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
 		requestFocus();
-		startDragPos = new Vector2D(e.getX(), e.getY());
-		
-		if (!isDragAction) {
-			newBodyStart = startDragPos;
-		}
+		firstDragPos = lastDragPos = new Vector2D(e.getX(), e.getY());
+
+		isNewBodyAction = SwingUtilities.isLeftMouseButton(e);
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if (!isDragAction) {
+		if (SwingUtilities.isLeftMouseButton(e)) {
 			addBody();
 		}
-		newBodyStart = null;
-		newBodyEnd = null;
+		firstDragPos = null;
+		lastDragPos = null;
+		isNewBodyAction = false;
 	}
 
 	@Override
@@ -86,28 +86,23 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-			isDragAction = true;
-		}
+
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-			isDragAction = false;
-		}
+
 	}
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		Vector2D endDragPos = new Vector2D(e.getX(), e.getY());
-		if (isDragAction) {
-			Vector2D move = startDragPos.subtract(endDragPos);
-			setAbsRefPoint(getAbsRefPoint().subtract(move));	
-		} else {
-			newBodyEnd = endDragPos;
+		Vector2D currentDragPos = new Vector2D(e.getX(), e.getY());
+
+		if (SwingUtilities.isMiddleMouseButton(e)) {
+			Vector2D move = lastDragPos.subtract(currentDragPos);
+			setAbsRefPoint(getAbsRefPoint().subtract(move));
 		}
-		startDragPos = endDragPos;
+		lastDragPos = currentDragPos;
 	}
 
 	@Override
