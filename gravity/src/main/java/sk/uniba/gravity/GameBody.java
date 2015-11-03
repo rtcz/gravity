@@ -1,15 +1,23 @@
 package sk.uniba.gravity;
 
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
-
 public class GameBody extends Body {
 
 	private boolean selected;
+
+	private boolean isColliding;
 
 	public GameBody() {}
 
 	public GameBody(String name) {
 		setName(name);
+	}
+
+	public boolean isColliding() {
+		return isColliding;
+	}
+
+	public void setColliding(boolean isColliding) {
+		this.isColliding = isColliding;
 	}
 
 	public void setSelected(boolean selected) {
@@ -18,10 +26,6 @@ public class GameBody extends Body {
 
 	public boolean isSelected() {
 		return selected;
-	}
-
-	public void setCenter(Vector2D center) {
-		super.setCenter(center);
 	}
 
 }

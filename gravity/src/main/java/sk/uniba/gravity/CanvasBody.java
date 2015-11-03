@@ -31,15 +31,6 @@ public class CanvasBody {
 		return (int) Math.round(body.getSize() * scale);
 	}
 
-	public Color getColor() {
-		// TODO involve density
-		int colorValue = 255 - (int) Math.log10(body.getRadius()) * 10;
-		if (colorValue < 128) {
-			colorValue = 128;
-		}
-		return new Color(colorValue, colorValue, colorValue);
-	}
-
 	public int getCenterX() {
 		double tmp = body.getCenter().getX();
 		return (int) Math.round(tmp * scale);
@@ -95,8 +86,12 @@ public class CanvasBody {
 	}
 
 	public void drawBody(Graphics2D g) {
+		drawBody(g, Color.LIGHT_GRAY);
+	}
+
+	public void drawBody(Graphics2D g, Color color) {
 		int size = getSize();
-		g.setColor(getColor());
+		g.setColor(color);
 		g.fillOval(getX(), getY(), size, size);
 	}
 }

@@ -127,16 +127,52 @@ public class GravityCanvas extends GameCanvas {
 		bottomPanel.add(radiusUnitLabel);
 
 		add(bottomPanel, BorderLayout.SOUTH);
-		bodies = GameBodyFactory.createSolSystem();
+		// bodies = GameBodyFactory.createSolSystem();
 	}
 
 	@Override
 	public void update(double delta) {
 		double dSeconds = delta / 1_000d;
+
+		// reset collisions
+		for (GameBody body : bodies) {
+			body.setColliding(false);
+		}
+
+		// collisions
+		List<Body> collisionList = new ArrayList<Body>();
 		for (int i = 0; i < bodies.size(); i++) {
 			for (int j = 0; j < bodies.size(); j++) {
 				if (i > j) {
+					GameBody b1 = bodies.get(i);
+					GameBody b2 = bodies.get(j);
+					if (b1.isNear(b2) && b1.collides(b2)) {
+						b1.setColliding(true);
+						b2.setColliding(true);
+						Body majorBody;
+						Body minorBody;
+						if (b1.getMass() > b2.getMass()) {
+							majorBody = b1;
+							minorBody = b2;
+						} else {
+							majorBody = b2;
+							minorBody = b1;
+						}
+						majorBody.merge(minorBody);
+						collisionList.add(minorBody);
+					}
+				}
+			}
+		}
+		// removal of collided bodies
+		for (Body body : collisionList) {
+			bodies.remove(body);
+		}
 
+		// gravity
+		for (int i = 0; i < bodies.size(); i++) {
+			for (int j = 0; j < bodies.size(); j++) {
+				if (i > j) {
 					Body b1 = bodies.get(i);
 					Body b2 = bodies.get(j);
 					double mass1 = b1.getMass();
@@ -166,13 +202,14 @@ public class GravityCanvas extends GameCanvas {
 				}
 			}
 		}
+
+		// trajectory
 		for (Body body : bodies) {
 			// d=v*t
 			Vector2D distance = body.getVelocity().scalarMultiply(dSeconds);
 			Vector2D newCenter = body.getCenter().add(distance);
 			body.setCenter(newCenter);
 
-			// trajectory
 			if (trackCheck.isSelected()) {
 				if (body.getTrack().isEmpty()) {
 					body.addTrackPoint(newCenter);
@@ -242,7 +279,21 @@ public class GravityCanvas extends GameCanvas {
 		// bodies
 		for (GameBody body : bodies) {
 			CanvasBody cBody = new CanvasBody(body, refScale);
-			cBody.drawBody(gg);
+			
+			if (body.isColliding()) {
+				// TODO remove this temp code
+				cBody.drawBody(gg, Color.GREEN);
+			} else {
+				cBody.drawBody(gg);
+			}
+			
+//			for (int i = 0; i < bodies.size(); i++) {
+//				Vector2D point = body.epicenter(bodies.get(i)).scalarMultiply(refScale);
+//				point.add(new Vector2D(0, 0));
+//				gg.setColor(Color.BLUE);
+//				gg.fillOval((int) point.getX() - 1, (int) point.getY() - 1, 3, 3);
+//			}
+
 			if (body.isSelected()) {
 				cBody.drawSelection(gg);
 			}
@@ -252,7 +303,7 @@ public class GravityCanvas extends GameCanvas {
 			if (cBody.getSize() <= 1) {
 				// make body visible as a dot, if its too small
 				gg.setColor(Color.WHITE);
-				gg.drawRect(cBody.getX(), cBody.getY(), 1, 1);
+				gg.fillOval(cBody.getX(), cBody.getY(), 1, 1);
 			}
 		}
 

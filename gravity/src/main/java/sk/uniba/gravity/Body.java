@@ -38,13 +38,21 @@ public class Body extends Circle {
 	}
 
 	/**
+	 * Volume that body represents
+	 * 
+	 * @return m^3
+	 */
+	public double getVolume() {
+		return (float) 4 / 3 * Math.PI * Math.pow(getRadius(), 3);
+	}
+
+	/**
 	 * Get mass of sphere that body represents
 	 * 
-	 * @return
+	 * @return kg
 	 */
 	public double getMass() {
-		double volume = (float) 4 / 3 * Math.PI * Math.pow(getRadius(), 3);
-		return volume * density;
+		return getVolume() * density;
 	}
 
 	public void setDensity(double density) {
@@ -81,6 +89,17 @@ public class Body extends Circle {
 		this.name = name;
 	}
 
+	public void merge(Body body) {
+		double sumMass = getMass() + body.getMass();
+		Vector2D velocity1 = getVelocity().scalarMultiply(getMass() / sumMass);
+		Vector2D velocity2 = body.getVelocity().scalarMultiply(body.getMass() / sumMass);
+		setVelocity(velocity1.add(velocity2));
+		
+		double sumVolume = getVolume() + body.getVolume();
+		setDensity(sumMass / sumVolume);
+		setRadius(Math.cbrt((3 * sumVolume) / (4 * Math.PI)));
+	}
+
 	@Override
 	public String toString() {
 		return getName();
@@ -105,12 +124,13 @@ public class Body extends Circle {
 		trajectory.add(point);
 		this.tempTrajectoryPoint = temp;
 	}
-	
-//	public void limitTrack(int size) {
-//		if (trajectory.size() > size) {
-//			trajectory = trajectory.subList(trajectory.size() - size, trajectory.size() - 1);	
-//		}
-//	}
+
+	// public void limitTrack(int size) {
+	// if (trajectory.size() > size) {
+	// trajectory = trajectory.subList(trajectory.size() - size,
+	// trajectory.size() - 1);
+	// }
+	// }
 
 	public void clearTrack() {
 		trajectory.clear();
