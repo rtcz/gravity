@@ -68,7 +68,7 @@ public class GameManager {
 		this.fullscreen = fullscreen;
 	}
 
-	private void setup() {
+	private void init() {
 		window.setSize(width, height);
 		if (fullscreen) {
 			window.setUndecorated(true);
@@ -80,6 +80,7 @@ public class GameManager {
 		}
 		window.setContentPane(canvas);
 		window.setLayout(new BorderLayout());
+		canvas.init(this);
 		window.setVisible(true);
 	}
 
@@ -88,8 +89,7 @@ public class GameManager {
 	}
 
 	public void run() {
-		setup();
-		canvas.init(this);
+		init();
 		double updateTime = getTime();
 		// double renderTime = getTime();
 		double lastTime = getTime();

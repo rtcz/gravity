@@ -10,6 +10,7 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.GameBody;
 import sk.uniba.gravity.GameConstants;
+import sk.uniba.gravity.Scale;
 import sk.uniba.gravity.Vector2DUtils;
 import sk.uniba.gravity.game.InteractiveGame;
 
@@ -38,7 +39,7 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 				body.setSelected(false);
 				Vector2D mousePos = new Vector2D(e.getX(), e.getY());
 				mousePos = mousePos.subtract(getAbsRefPoint());
-				mousePos = mousePos.scalarMultiply(1 / getRefScale());
+				mousePos = mousePos.scalarMultiply(getMeterScale().up());
 				// TODO translate body coordinates
 				if (Vector2DUtils.isPosInside(body, mousePos)) {
 					body.setSelected(true);
@@ -122,12 +123,12 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 		}
 
 		// max zoom limit
-		if (getRefScale() * zoom > MAX_ZOOM) {
-			zoom = MAX_ZOOM / getRefScale();
+		if (getMeterScale().down() * zoom > MAX_ZOOM) {
+			zoom = MAX_ZOOM / getMeterScale().down();
 		}
 		// min zoom limit
-		if (getRefScale() * zoom < MIN_ZOOM) {
-			zoom = MIN_ZOOM / getRefScale();
+		if (getMeterScale().down() * zoom < MIN_ZOOM) {
+			zoom = MIN_ZOOM / getMeterScale().down();
 		}
 
 		Vector2D mousePos = new Vector2D(e.getX(), e.getY());
@@ -135,7 +136,7 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 		Vector2D zoomedRefPos = mouseRefPos.scalarMultiply(zoom);
 		Vector2D move = mouseRefPos.subtract(zoomedRefPos);
 
-		setRefScale(getRefScale() * zoom);
+		setMeterScale(new Scale(getMeterScale().down() * zoom));
 		setAbsRefPoint(getAbsRefPoint().subtract(move));
 	}
 }

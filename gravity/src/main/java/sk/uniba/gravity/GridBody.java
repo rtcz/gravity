@@ -7,42 +7,65 @@ import java.util.List;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
-public class CanvasBody {
+public class GridBody {
 
 	private GameBody body;
+	private Scale meterScale;
+	private Scale pixelScale;
 	private double scale;
 
-	public CanvasBody(GameBody body, double scale) {
+	private int x;
+	private int y;
+
+	private int centerX;
+	private int centerY;
+
+	private int size;
+
+	/**
+	 * @param body
+	 * @param meterScale
+	 *            grid unit to meter
+	 * @param pixelScale
+	 *            grid unit to pixel
+	 */
+	public GridBody(GameBody body, Scale meterScale, Scale pixelScale) {
 		this.body = body;
-		this.scale = scale;
+		this.meterScale = meterScale;
+		this.pixelScale = pixelScale;
+
+		// pixel to meter scale
+		scale = meterScale.down() * pixelScale.up();
+
+		x = (int) ((body.getCenter().getX() - body.getRadius()) * scale);
+		y = (int) ((body.getCenter().getY() - body.getRadius()) * scale);
+		centerX = (int) (body.getCenter().getX() * scale);
+		centerY = (int) (body.getCenter().getY() * scale);
+		size = (int) (body.getSize() * scale);
 	}
 
 	public int getX() {
-		double tmp = body.getCenter().getX() - body.getRadius();
-		return (int) Math.round(tmp * scale);
+		return x;
 	}
 
 	public int getY() {
-		double tmp = body.getCenter().getY() - body.getRadius();
-		return (int) Math.round(tmp * scale);
+		return y;
 	}
 
 	public int getSize() {
-		return (int) Math.round(body.getSize() * scale);
+		return size;
 	}
 
 	public int getCenterX() {
-		double tmp = body.getCenter().getX();
-		return (int) Math.round(tmp * scale);
+		return centerX;
 	}
 
 	public int getCenterY() {
-		double tmp = body.getCenter().getY();
-		return (int) Math.round(tmp * scale);
+		return centerY;
 	}
 
 	public void drawTrajectory(Graphics2D g) {
-		g.setStroke(new BasicStroke(1));
+		g.setStroke(new BasicStroke((float) pixelScale.up()));
 
 		Color trackColor = Color.ORANGE;
 		List<Vector2D> track = body.getTrack();
@@ -68,7 +91,7 @@ public class CanvasBody {
 	public void drawSelection(Graphics2D g) {
 		int size = getSize();
 		g.setColor(Color.CYAN);
-		int strokeWidth = size / 10;
+		int strokeWidth = size / 20;
 		int strokeOffset = strokeWidth / 2;
 		int strokeSize = size - strokeOffset * 2;
 		g.setStroke(new BasicStroke(strokeWidth));
@@ -77,12 +100,20 @@ public class CanvasBody {
 
 	public void drawName(Graphics2D g) {
 		int alpha = 255;
-		if (getSize() == 0) {
-			// TODO refine, use log or something
-			alpha *= body.getSize() * scale;
+		if (getSize() <= pixelScale.up()) {
+			double size = (body.getSize() * scale) / pixelScale.up();
+			// TODO compensate by zoom factor
+			// 1/2(sin(x*pi + 3/2*pi) + 1)
+			alpha *= Math.pow(0.5 * (Math.sin(size * Math.PI + 1.5 * Math.PI) + 1), 0.25);
 		}
 		g.setColor(new Color(255, 255, 255, alpha));
-		g.drawString(body.getName(), getCenterX(), getCenterY());
+		
+		int x = (int) (body.getCenter().getX() * meterScale.down());
+		int y = (int) (body.getCenter().getY() * meterScale.down());
+		
+		g.scale(pixelScale.up(), pixelScale.up());
+		g.drawString(body.getName(), x, y);
+		g.scale(pixelScale.down(), pixelScale.down());
 	}
 
 	public void drawBody(Graphics2D g) {
@@ -90,8 +121,13 @@ public class CanvasBody {
 	}
 
 	public void drawBody(Graphics2D g, Color color) {
-		int size = getSize();
-		g.setColor(color);
-		g.fillOval(getX(), getY(), size, size);
+		if (getSize() > pixelScale.up()) {
+			g.setColor(color);
+			g.fillOval(getX(), getY(), getSize(), getSize());
+		} else {
+			// make body visible as a dot, if its too small
+			g.setColor(Color.WHITE);
+			g.fillOval(getX(), getY(), (int) pixelScale.up(), (int) pixelScale.up());
+		}
 	}
 }

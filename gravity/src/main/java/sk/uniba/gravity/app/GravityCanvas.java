@@ -5,12 +5,14 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -21,8 +23,9 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import sk.uniba.gravity.Body;
 import sk.uniba.gravity.GameBody;
 import sk.uniba.gravity.GameConstants;
+import sk.uniba.gravity.Scale;
 import sk.uniba.gravity.Size;
-import sk.uniba.gravity.CanvasBody;
+import sk.uniba.gravity.GridBody;
 import sk.uniba.gravity.Vector2DUtils;
 import sk.uniba.gravity.game.GameCanvas;
 import sk.uniba.gravity.game.GameManager;
@@ -40,7 +43,14 @@ public class GravityCanvas extends GameCanvas {
 
 	private Vector2D absRefPoint = new Vector2D(0, 0);
 	private Vector2D relRefPoint = new Vector2D(0, 0);
-	private double refScale = 1e-6;
+
+	private Scale meterScale = new Scale(GameConstants.METER_SCALE);
+	private Scale pixelScale = new Scale(GameConstants.PIXEL_SCALE);
+	// private Scale sizeScale;
+
+	private JButton solSystem = new JButton("Sol System");
+	private JButton protoDisk = new JButton("Proto Disk");
+	private JButton clear = new JButton("Clear");
 
 	private JCheckBox trackCheck = new JCheckBox("Show tracks");
 	private JCheckBox trackLimitCheck = new JCheckBox("Limit tracks");
@@ -68,19 +78,29 @@ public class GravityCanvas extends GameCanvas {
 		setFocusable(true);
 		setBackground(Color.BLACK);
 
+		solSystem.setMargin(new Insets(0, 0, 0, 0));
+		solSystem.addActionListener(e -> {
+			bodies = GameBodyFactory.createSolSystem();
+		});
+
+		protoDisk.setMargin(new Insets(0, 0, 0, 0));
+		protoDisk.addActionListener(e -> {
+			// TODO craete proto disk
+		});
+
+		clear.setMargin(new Insets(0, 0, 0, 0));
+		clear.addActionListener(e -> {
+			bodies.clear();
+		});
+
 		trackCheck.setOpaque(false);
-		trackCheck.setFocusable(false);
 		trackCheck.setForeground(Color.WHITE);
 
 		trackLimitCheck.setOpaque(false);
-		trackLimitCheck.setFocusable(false);
 		trackLimitCheck.setForeground(Color.WHITE);
 
 		showNameCheck.setOpaque(false);
-		showNameCheck.setFocusable(false);
 		showNameCheck.setForeground(Color.WHITE);
-
-		slider.setFocusable(false);
 
 		newBodyLabel.setForeground(Color.WHITE);
 		newBodyName.setColumns(10);
@@ -110,6 +130,10 @@ public class GravityCanvas extends GameCanvas {
 		bottomPanel.setOpaque(false);
 		bottomPanel.setLayout(new FlowLayout());
 
+		bottomPanel.add(solSystem);
+		bottomPanel.add(protoDisk);
+		bottomPanel.add(clear);
+
 		bottomPanel.add(trackCheck);
 		bottomPanel.add(trackLimitCheck);
 		bottomPanel.add(showNameCheck);
@@ -127,7 +151,6 @@ public class GravityCanvas extends GameCanvas {
 		bottomPanel.add(radiusUnitLabel);
 
 		add(bottomPanel, BorderLayout.SOUTH);
-		// bodies = GameBodyFactory.createSolSystem();
 	}
 
 	@Override
@@ -254,56 +277,53 @@ public class GravityCanvas extends GameCanvas {
 
 	private void render(Graphics2D g) {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
 		Graphics2D gg = (Graphics2D) g.create();
 
 		for (GameBody body : bodies) {
 			if (body.isSelected()) {
 				Vector2D move = relRefPoint.subtract(body.getCenter());
-				absRefPoint = absRefPoint.add(move.scalarMultiply(getRefScale()));
+				absRefPoint = absRefPoint.add(move.scalarMultiply(getMeterScale().down()));
 				relRefPoint = body.getCenter();
 			}
 		}
 
 		// RELATIVE COORDINATES
 		gg.translate(absRefPoint.getX(), absRefPoint.getY());
+		gg.scale(pixelScale.down(), pixelScale.down());
 
 		// body trajectories
 		for (GameBody body : bodies) {
-			CanvasBody cBody = new CanvasBody(body, refScale);
+			GridBody gBody = new GridBody(body, meterScale, pixelScale);
 			if (trackCheck.isSelected()) {
-				cBody.drawTrajectory(gg);
+				gBody.drawTrajectory(gg);
 			}
 		}
 
 		// bodies
 		for (GameBody body : bodies) {
-			CanvasBody cBody = new CanvasBody(body, refScale);
-			
+			GridBody cBody = new GridBody(body, meterScale, pixelScale);
+
 			if (body.isColliding()) {
 				// TODO remove this temp code
 				cBody.drawBody(gg, Color.GREEN);
 			} else {
 				cBody.drawBody(gg);
 			}
-			
-//			for (int i = 0; i < bodies.size(); i++) {
-//				Vector2D point = body.epicenter(bodies.get(i)).scalarMultiply(refScale);
-//				point.add(new Vector2D(0, 0));
-//				gg.setColor(Color.BLUE);
-//				gg.fillOval((int) point.getX() - 1, (int) point.getY() - 1, 3, 3);
-//			}
+
+			// for (int i = 0; i < bodies.size(); i++) {
+			// Vector2D point =
+			// body.epicenter(bodies.get(i)).scalarMultiply(refScale);
+			// point.add(new Vector2D(0, 0));
+			// gg.setColor(Color.BLUE);
+			// gg.fillOval((int) point.getX() - 1, (int) point.getY() - 1, 3,
+			// 3);
+			// }
 
 			if (body.isSelected()) {
 				cBody.drawSelection(gg);
 			}
 			if (showNameCheck.isSelected()) {
 				cBody.drawName(gg);
-			}
-			if (cBody.getSize() <= 1) {
-				// make body visible as a dot, if its too small
-				gg.setColor(Color.WHITE);
-				gg.fillOval(cBody.getX(), cBody.getY(), 1, 1);
 			}
 		}
 
@@ -326,7 +346,7 @@ public class GravityCanvas extends GameCanvas {
 		String dateValue = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date);
 		g.drawString("TIME " + dateValue, 10, 60);
 
-		Size size = new Size(1 / refScale);
+		Size size = new Size(meterScale.up());
 		g.drawString("SCALE 1px = " + size, 10, 80);
 
 		g.drawString("Body count " + bodies.size(), 10, 100);
@@ -343,10 +363,11 @@ public class GravityCanvas extends GameCanvas {
 		}
 		GameBody newBody = new GameBody();
 
-		Vector2D center = firstDragPos.subtract(absRefPoint).scalarMultiply(1 / refScale);
+		Vector2D center = firstDragPos.subtract(absRefPoint).scalarMultiply(meterScale.up());
 		newBody.setCenter(center);
 
-		Vector2D velocity = firstDragPos.subtract(lastDragPos).scalarMultiply(1e-6 / refScale);
+		// TODO optimise velocity size and display it
+		Vector2D velocity = firstDragPos.subtract(lastDragPos).scalarMultiply(1e-6 / meterScale.up());
 		newBody.setVelocity(velocity);
 
 		newBody.setName(newBodyName.getText());
@@ -364,12 +385,12 @@ public class GravityCanvas extends GameCanvas {
 		this.absRefPoint = refPoint;
 	}
 
-	protected double getRefScale() {
-		return refScale;
+	protected Scale getMeterScale() {
+		return meterScale;
 	}
 
-	protected void setRefScale(double refScale) {
-		this.refScale = refScale;
+	protected void setMeterScale(Scale meterScale) {
+		this.meterScale = meterScale;
 	}
 
 	protected List<GameBody> getBodyList() {
