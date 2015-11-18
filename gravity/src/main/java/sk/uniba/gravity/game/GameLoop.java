@@ -5,7 +5,8 @@ public interface GameLoop {
 	public void init(GameManager mng);
 
 	/**
-	 * @param game delta time since last update in milliseconds
+	 * @param game
+	 *            delta time since last update in milliseconds
 	 */
 	public void update(double delta);
 

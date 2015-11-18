@@ -8,7 +8,6 @@ public class Circle {
 	private double radius;
 
 	public Circle(Vector2D center, double radius) {
-		// TODO
 		this.center = center;
 		this.radius = radius;
 	}

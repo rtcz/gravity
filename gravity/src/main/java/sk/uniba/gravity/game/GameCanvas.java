@@ -6,4 +6,6 @@ public abstract class GameCanvas extends JPanel implements GameLoop {
 
 	private static final long serialVersionUID = 6892324820035625009L;
 
+	public abstract void addContents();
+	
 }

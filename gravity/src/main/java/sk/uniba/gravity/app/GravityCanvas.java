@@ -52,7 +52,7 @@ public class GravityCanvas extends GameCanvas {
 	private JButton protoDisk = new JButton("Proto Disk");
 	private JButton clear = new JButton("Clear");
 
-	private JCheckBox trackCheck = new JCheckBox("Show tracks");
+	private JCheckBox trackCheck = new JCheckBox("Show tracks"); 
 	private JCheckBox trackLimitCheck = new JCheckBox("Limit tracks");
 	private JCheckBox showNameCheck = new JCheckBox("Show names");
 
@@ -85,7 +85,24 @@ public class GravityCanvas extends GameCanvas {
 
 		protoDisk.setMargin(new Insets(0, 0, 0, 0));
 		protoDisk.addActionListener(e -> {
-			// TODO craete proto disk
+			Vector2D scrCenter = new Vector2D(getWidth() / 2, getHeight() / 2);
+			Vector2D diskCenter = scrCenter.subtract(absRefPoint).scalarMultiply(getMeterScale().up());
+			double diskRadius = Math.min(getWidth(), getHeight()) / 2 * getMeterScale().up();
+			
+			for (int i = 0; i < GameConstants.PROTODISK_SIZE; i++) {
+				double distance = diskRadius * Math.sqrt(Math.random());
+				double angle = 2 * Math.PI * Math.random();
+				double x = distance * Math.cos(angle);
+				double y = distance * Math.sin(angle);
+				Vector2D bodyCenter = new Vector2D(x, y).add(diskCenter);
+				
+				GameBody body = new GameBody("Planet " + (i + 1));
+				body.setRadius(1.0e6);
+				body.setDensity(1000);
+				body.setCenter(bodyCenter);
+				//body.setVelocity(new Vector2D(+3.879081706909912e4, -4.110223749127960e4));
+				bodies.add(body);
+			}
 		});
 
 		clear.setMargin(new Insets(0, 0, 0, 0));
@@ -115,17 +132,11 @@ public class GravityCanvas extends GameCanvas {
 		radiusField.setColumns(10);
 		radiusField.setText("1000");
 		radiusUnitLabel.setForeground(Color.WHITE);
+		
+		addContents();
 	}
-
-	@Override
-	public void init(GameManager mng) {
-		this.mng = mng;
-
-		// UI
-		slider.addChangeListener(event -> {
-			mng.setSpeedMultiplier(Math.pow(10, slider.getValue()));
-		});
-
+	
+	public void addContents() {
 		JPanel bottomPanel = new JPanel();
 		bottomPanel.setOpaque(false);
 		bottomPanel.setLayout(new FlowLayout());
@@ -151,6 +162,15 @@ public class GravityCanvas extends GameCanvas {
 		bottomPanel.add(radiusUnitLabel);
 
 		add(bottomPanel, BorderLayout.SOUTH);
+	}
+
+	@Override
+	public void init(GameManager mng) {
+		this.mng = mng;
+		slider.addChangeListener(event -> {
+			mng.setSpeedMultiplier(Math.pow(10, slider.getValue()));
+		});
+		absRefPoint = new Vector2D(getWidth() / 2, getHeight() / 2);
 	}
 
 	@Override

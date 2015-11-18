@@ -80,8 +80,9 @@ public class GameManager {
 		}
 		window.setContentPane(canvas);
 		window.setLayout(new BorderLayout());
-		canvas.init(this);
+		canvas.addContents();
 		window.setVisible(true);
+		canvas.init(this);
 	}
 
 	public void setTitle(String title) {
