@@ -32,7 +32,7 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		
+
 		if (SwingUtilities.isRightMouseButton(e)) {
 			bodySelected(null);
 			for (GameBody body : getBodyList()) {
@@ -45,7 +45,7 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 					body.setSelected(true);
 					bodySelected(body);
 				}
-			}	
+			}
 		}
 	}
 

@@ -39,20 +39,19 @@ public class GravityCanvas extends GameCanvas {
 
 	private GameManager mng;
 
-	private List<GameBody> bodies = new ArrayList<GameBody>();
+	private final List<GameBody> bodies = new ArrayList<GameBody>();
 
 	private Vector2D absRefPoint = new Vector2D(0, 0);
 	private Vector2D relRefPoint = new Vector2D(0, 0);
 
 	private Scale meterScale = new Scale(GameConstants.METER_SCALE);
 	private Scale pixelScale = new Scale(GameConstants.PIXEL_SCALE);
-	// private Scale sizeScale;
 
 	private JButton solSystem = new JButton("Sol System");
 	private JButton protoDisk = new JButton("Proto Disk");
 	private JButton clear = new JButton("Clear");
 
-	private JCheckBox trackCheck = new JCheckBox("Show tracks"); 
+	private JCheckBox trackCheck = new JCheckBox("Show tracks");
 	private JCheckBox trackLimitCheck = new JCheckBox("Limit tracks");
 	private JCheckBox showNameCheck = new JCheckBox("Show names");
 
@@ -78,38 +77,6 @@ public class GravityCanvas extends GameCanvas {
 		setFocusable(true);
 		setBackground(Color.BLACK);
 
-		solSystem.setMargin(new Insets(0, 0, 0, 0));
-		solSystem.addActionListener(e -> {
-			bodies = GameBodyFactory.createSolSystem();
-		});
-
-		protoDisk.setMargin(new Insets(0, 0, 0, 0));
-		protoDisk.addActionListener(e -> {
-			Vector2D scrCenter = new Vector2D(getWidth() / 2, getHeight() / 2);
-			Vector2D diskCenter = scrCenter.subtract(absRefPoint).scalarMultiply(getMeterScale().up());
-			double diskRadius = Math.min(getWidth(), getHeight()) / 2 * getMeterScale().up();
-			
-			for (int i = 0; i < GameConstants.PROTODISK_SIZE; i++) {
-				double distance = diskRadius * Math.sqrt(Math.random());
-				double angle = 2 * Math.PI * Math.random();
-				double x = distance * Math.cos(angle);
-				double y = distance * Math.sin(angle);
-				Vector2D bodyCenter = new Vector2D(x, y).add(diskCenter);
-				
-				GameBody body = new GameBody("Planet " + (i + 1));
-				body.setRadius(1.0e6);
-				body.setDensity(1000);
-				body.setCenter(bodyCenter);
-				//body.setVelocity(new Vector2D(+3.879081706909912e4, -4.110223749127960e4));
-				bodies.add(body);
-			}
-		});
-
-		clear.setMargin(new Insets(0, 0, 0, 0));
-		clear.addActionListener(e -> {
-			bodies.clear();
-		});
-
 		trackCheck.setOpaque(false);
 		trackCheck.setForeground(Color.WHITE);
 
@@ -132,10 +99,10 @@ public class GravityCanvas extends GameCanvas {
 		radiusField.setColumns(10);
 		radiusField.setText("1000");
 		radiusUnitLabel.setForeground(Color.WHITE);
-		
+
 		addContents();
 	}
-	
+
 	public void addContents() {
 		JPanel bottomPanel = new JPanel();
 		bottomPanel.setOpaque(false);
@@ -168,16 +135,62 @@ public class GravityCanvas extends GameCanvas {
 	public void init(GameManager mng) {
 		this.mng = mng;
 		slider.addChangeListener(event -> {
-			mng.setSpeedMultiplier(Math.pow(10, slider.getValue()));
+			double value = Math.pow(10, slider.getValue());
+			synchronized (this) {
+				mng.setSpeedMultiplier((int) Math.round(value));
+			}
 		});
+		solSystem.setMargin(new Insets(0, 0, 0, 0));
+		solSystem.addActionListener(e -> {
+			synchronized (this) {
+				bodies.addAll(GameBodyFactory.createSolSystem());
+			}
+		});
+
+		protoDisk.setMargin(new Insets(0, 0, 0, 0));
+		protoDisk.addActionListener(e -> {
+			// TODO move to GameBodyFactory
+
+			Vector2D scrCenter = new Vector2D(getWidth() / 2, getHeight() / 2);
+			Vector2D diskCenter = scrCenter.subtract(absRefPoint).scalarMultiply(getMeterScale().up());
+			double diskRadius = Math.min(getWidth(), getHeight()) / 2 * getMeterScale().up();
+
+			synchronized (this) {
+				for (int i = 0; i < GameConstants.PROTODISK_SIZE; i++) {
+					// double distance = diskRadius * Math.sqrt(Math.random());
+					double distance = diskRadius * Math.random();
+					double angle = 2 * Math.PI * Math.random();
+					double x = distance * Math.cos(angle);
+					double y = distance * Math.sin(angle);
+					Vector2D bodyCenter = new Vector2D(x, y).add(diskCenter);
+
+					GameBody body = new GameBody("Planet " + (i + 1));
+					body.setRadius(1.0e6);
+					body.setDensity(1000);
+					body.setCenter(bodyCenter);
+					// TODO add velocity
+					// body.setVelocity(new Vector2D(+3.879081706909912e4,
+					// -4.110223749127960e4));
+					bodies.add(body);
+				}
+			}
+		});
+
+		clear.setMargin(new Insets(0, 0, 0, 0));
+		clear.addActionListener(e -> {
+			synchronized (this) {
+				bodies.clear();
+			}
+		});
+		
 		absRefPoint = new Vector2D(getWidth() / 2, getHeight() / 2);
 	}
 
 	@Override
-	public void update(double delta) {
+	public synchronized void update(double delta) {
 		double dSeconds = delta / 1_000d;
 
-		// reset collisions
+		// // reset collisions
 		for (GameBody body : bodies) {
 			body.setColliding(false);
 		}
@@ -212,6 +225,43 @@ public class GravityCanvas extends GameCanvas {
 			bodies.remove(body);
 		}
 
+		// compute general barycenter
+		// BarycenterBody baryCenter = new BarycenterBody();
+		// for (Body body : bodies) {
+		// baryCenter.addBody(body);
+		// }
+		//
+		// for (Body body : bodies) {
+		// // general barycenter without actual body
+		// BarycenterBody extBody = new BarycenterBody(baryCenter);
+		// extBody.subtractBody(body);
+		//
+		// // gravitational force by Newton's law of universal
+		// // gravitation F=G*m1*m2/r^2
+		// double dist12 = body.getCenter().distance(extBody.getCenter());
+		// // softened gravitational potential to remove the singularity at
+		// // small distances
+		//// if (dist12 < 1e7) {
+		//// dist12 = 1e7;
+		//// }
+		// double nominator = GameConstants.G_CONSTANT * body.getMass() *
+		// extBody.getMass();
+		// double denominator = Math.pow(dist12, 2);
+		// double gForce = nominator / denominator;
+		//
+		// // momentum p=F*t (force is applied for n seconds)
+		// double momentum = gForce * dSeconds;
+		//
+		// // body velocity v=p/m
+		// double sVelocity = momentum / body.getMass();
+		//
+		// // direction vector
+		// Vector2D uVect =
+		// Vector2DUtils.unit(extBody.getCenter().subtract(body.getCenter()));
+		// Vector2D vVelocity = uVect.scalarMultiply(sVelocity);
+		// body.setVelocity(body.getVelocity().add(vVelocity));
+		// }
+
 		// gravity
 		for (int i = 0; i < bodies.size(); i++) {
 			for (int j = 0; j < bodies.size(); j++) {
@@ -223,18 +273,19 @@ public class GravityCanvas extends GameCanvas {
 
 					// gravitational force by Newton's law of universal
 					// gravitation F=G*m1*m2/r^2
-					double dist12 = b1.getCenter().distance(b2.getCenter());
+					Vector2D vDist12 = b2.getCenter().subtract(b1.getCenter());
+					double dist12 = vDist12.getNorm();
 					double gForce = (GameConstants.G_CONSTANT * mass1 * mass2) / Math.pow(dist12, 2);
 
 					// momentum p=F*t (force is applied for n seconds)
 					double momentum = gForce * dSeconds;
 
-					// body velocities v=p/m
+					// scalar delta velocities v=p/m
 					double sVelocity1 = momentum / mass1;
 					double sVelocity2 = momentum / mass2;
 
 					// direction vectors
-					Vector2D uVect12 = Vector2DUtils.unit(b2.getCenter().subtract(b1.getCenter()));
+					Vector2D uVect12 = Vector2DUtils.scalarDivide(vDist12, dist12);
 					Vector2D uVect21 = uVect12.scalarMultiply(-1);
 
 					Vector2D vVelocity1 = uVect12.scalarMultiply(sVelocity1);
@@ -246,34 +297,37 @@ public class GravityCanvas extends GameCanvas {
 			}
 		}
 
-		// trajectory
 		for (Body body : bodies) {
 			// d=v*t
 			Vector2D distance = body.getVelocity().scalarMultiply(dSeconds);
 			Vector2D newCenter = body.getCenter().add(distance);
 			body.setCenter(newCenter);
 
-			if (trackCheck.isSelected()) {
-				if (body.getTrack().isEmpty()) {
-					body.addTrackPoint(newCenter);
-				} else {
-					// Vector2D prevPos = body.getLastTrackPoint();
-					// if (prevPos.distance(newCenter) >
-					// body.getVelocity().getNorm()) {
-					// body.addTrackPoint(newCenter);
-					// } else {
-					// body.addTrackPoint(newCenter, true);
-					// }
-					body.addTrackPoint(newCenter);
-				}
-				if (trackLimitCheck.isSelected()) {
-					while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
-						body.getTrack().remove(0);
-					}
-				}
-			} else {
-				body.clearTrack();
-			}
+			// TODO trajectory
+			// lower velocity = less points
+			// higher velocity = more points
+			// if (trackCheck.isSelected()) {
+			// if (body.getTrack().isEmpty()) {
+			// body.addTrackPoint(newCenter);
+			// } else {
+			// // Vector2D prevPos = body.getLastTrackPoint();
+			// // if (prevPos.distance(newCenter) >
+			// // body.getVelocity().getNorm()) {
+			// // body.addTrackPoint(newCenter);
+			// // } else {
+			// // body.addTrackPoint(newCenter, true);
+			// // }
+			// body.addTrackPoint(newCenter);
+			// }
+			// if (trackLimitCheck.isSelected()) {
+			// while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS)
+			// {
+			// body.getTrack().remove(0);
+			// }
+			// }
+			// } else {
+			// body.clearTrack();
+			// }
 		}
 	}
 
@@ -295,7 +349,7 @@ public class GravityCanvas extends GameCanvas {
 		render((Graphics2D) g.create());
 	}
 
-	private void render(Graphics2D g) {
+	private synchronized void render(Graphics2D g) {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		Graphics2D gg = (Graphics2D) g.create();
 
@@ -312,9 +366,9 @@ public class GravityCanvas extends GameCanvas {
 		gg.scale(pixelScale.down(), pixelScale.down());
 
 		// body trajectories
-		for (GameBody body : bodies) {
-			GridBody gBody = new GridBody(body, meterScale, pixelScale);
-			if (trackCheck.isSelected()) {
+		if (trackCheck.isSelected()) {
+			for (GameBody body : bodies) {
+				GridBody gBody = new GridBody(body, meterScale, pixelScale);
 				gBody.drawTrajectory(gg);
 			}
 		}
@@ -353,7 +407,7 @@ public class GravityCanvas extends GameCanvas {
 
 			Arrow bodyArrow = new Arrow(lastDragPos, firstDragPos, 10);
 			bodyArrow.draw(g);
-
+			// TODO draw velocity value
 			// g.drawString(str, lastDragPos.getX(), lastDragPos.getY());
 		}
 
@@ -375,9 +429,10 @@ public class GravityCanvas extends GameCanvas {
 		g.setColor(Color.WHITE);
 		Cross reference = new Cross(absRefPoint, 10);
 		reference.draw(g);
+
 	}
 
-	public void addBody() {
+	public synchronized void addBody() {
 		if (densityField.getValue() <= 0 || radiusField.getValue() <= 0) {
 			return;
 		}

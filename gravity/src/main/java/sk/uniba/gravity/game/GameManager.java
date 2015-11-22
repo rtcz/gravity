@@ -14,6 +14,8 @@ public class GameManager {
 	public static final int DESIRED_FPS = GameConstants.DESIRED_FPS;
 	public static final int MIN_FPS = GameConstants.MIN_FPS;
 	public static final double MAX_LAG_MS = GameConstants.MAX_LAG_MS;
+	
+	public static final int MAX_UPDATE_SPEED = GameConstants.MAX_UPDATE_SPEED;
 
 	private static boolean syncUpdates = true;
 	private static boolean syncRenders = true;
@@ -29,7 +31,7 @@ public class GameManager {
 
 	private boolean fullscreen;
 
-	private double speedMultiplier = 1;
+	private int speedMultiplier = 1;
 
 	private JFrame window = new JFrame();
 
@@ -111,9 +113,17 @@ public class GameManager {
 				// updateTime += deltaTime * (1 / speedMultiplier);
 				updateTime += deltaTime;
 				gameTime += delta * speedMultiplier;
-
-				ups.update();
-				canvas.update(delta * speedMultiplier);
+				
+				// TODO limit by actual delta game time
+				if (speedMultiplier > MAX_UPDATE_SPEED) {
+					for (int i = 0; i < speedMultiplier / MAX_UPDATE_SPEED; i++) {
+						ups.update();
+						canvas.update(delta * MAX_UPDATE_SPEED);
+					}
+				} else {
+					ups.update();
+					canvas.update(delta * speedMultiplier);
+				}
 
 				// if (currTime > renderTime) {
 				// renderTime += deltaTime;
@@ -149,7 +159,7 @@ public class GameManager {
 	 * @param multiplier
 	 *            1 is for realtime
 	 */
-	public void setSpeedMultiplier(double multiplier) {
+	public void setSpeedMultiplier(int multiplier) {
 		this.speedMultiplier = multiplier;
 	}
 

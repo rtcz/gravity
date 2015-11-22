@@ -34,5 +34,7 @@ public final class GameConstants {
 	 */
 	public static final double G_CONSTANT = 6.674e-11;
 	
-	public static final int PROTODISK_SIZE = 300;
+	public static final int PROTODISK_SIZE = 100;
+	
+	public static final int MAX_UPDATE_SPEED = 10_000;
 }

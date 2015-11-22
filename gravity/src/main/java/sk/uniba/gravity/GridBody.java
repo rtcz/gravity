@@ -127,7 +127,7 @@ public class GridBody {
 		} else {
 			// make body visible as a dot, if its too small
 			g.setColor(Color.WHITE);
-			g.fillOval(getX(), getY(), (int) pixelScale.up(), (int) pixelScale.up());
+			g.fillRect(getX(), getY(), (int) pixelScale.up(), (int) pixelScale.up());
 		}
 	}
 }

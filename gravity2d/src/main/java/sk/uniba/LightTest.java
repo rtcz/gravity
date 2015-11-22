@@ -52,7 +52,7 @@ public class LightTest extends BasicGame {
 	 */
 	private float[][][] lightValue = new float[WIDTH+1][HEIGHT+1][3];
 	/** The lights we've defined */
-	private ArrayList lights = new ArrayList();
+	private ArrayList<Light> lights = new ArrayList<Light>();
 	/** The main light that we'll move around with the mouse, held seperately so we can update it */
 	private Light mainLight;
 	

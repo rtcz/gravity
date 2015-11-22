@@ -44,8 +44,8 @@ public class Circle {
 		double bothRadi = getRadius() + circle.getRadius();
 		return circle.getCenter().getX() < getCenter().getX() + bothRadi
 				&& getCenter().getX() < circle.getCenter().getX() + bothRadi
-				&& circle.getCenter().getX() < getCenter().getX() + bothRadi
-				&& getCenter().getX() < circle.getCenter().getX() + bothRadi;
+				&& circle.getCenter().getY() < getCenter().getY() + bothRadi
+				&& getCenter().getY() < circle.getCenter().getY() + bothRadi;
 	}
 
 	/**
@@ -55,8 +55,8 @@ public class Circle {
 	public boolean collides(Circle circle) {
 		double deltaX = getCenter().getX() - circle.getCenter().getX();
 		double deltaY = getCenter().getY() - circle.getCenter().getY();
-		double dist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-		return dist <= getRadius() + circle.getRadius();
+		double bothRadi = getRadius() + circle.getRadius();
+		return Math.pow(deltaX, 2) + Math.pow(deltaY, 2) <= Math.pow(bothRadi, 2);
 	}
 
 	public Vector2D collisionPoint(Circle circle) {

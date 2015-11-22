@@ -7,7 +7,7 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.shape.Circle;
 
-public class Body extends Circle {
+public class Body extends Circle implements MassNode {
 
 	/**
 	 * Density of water 1000 kg/m3
@@ -51,6 +51,7 @@ public class Body extends Circle {
 	 * 
 	 * @return kg
 	 */
+	@Override
 	public double getMass() {
 		return getVolume() * density;
 	}
@@ -89,13 +90,26 @@ public class Body extends Circle {
 		this.name = name;
 	}
 
+	/**
+	 * Merge preserves volume of bodies
+	 * @param body to merge with
+	 */
 	public void merge(Body body) {
 		double sumMass = getMass() + body.getMass();
+		double sumVolume = getVolume() + body.getVolume();
+		
+		// move to barycenter
+		BarycenterNode barycenter = new BarycenterNode();
+		barycenter.addBody(this);
+		barycenter.addBody(body);
+		setCenter(barycenter.getCenter());
+		
+		// velocities are sumed
 		Vector2D velocity1 = getVelocity().scalarMultiply(getMass() / sumMass);
 		Vector2D velocity2 = body.getVelocity().scalarMultiply(body.getMass() / sumMass);
 		setVelocity(velocity1.add(velocity2));
 		
-		double sumVolume = getVolume() + body.getVolume();
+		// recalculate density and radius
 		setDensity(sumMass / sumVolume);
 		setRadius(Math.cbrt((3 * sumVolume) / (4 * Math.PI)));
 	}
