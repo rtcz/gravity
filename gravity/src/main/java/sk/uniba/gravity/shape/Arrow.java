@@ -10,17 +10,23 @@ public class Arrow {
 	private Vector2D start;
 	private Vector2D end;
 	private double headSize;
-
+	Vector2D mainLine;
+	
 	public Arrow(Vector2D start, Vector2D end, double headSize) {
 		this.start = start;
 		this.end = end;
 		this.headSize = headSize;
+		mainLine = end.subtract(start);
+	}
+	
+	public Vector2D getMainLine() {
+		return mainLine;
 	}
 
 	public void draw(Graphics2D g) {
 
-		Vector2D arrowVect = end.subtract(start);
-		Vector2D uVect = Vector2DUtils.unit(arrowVect);
+		
+		Vector2D uVect = Vector2DUtils.unit(mainLine);
 
 		Vector2D vHeadSize = uVect.scalarMultiply(headSize);
 

@@ -3,6 +3,7 @@ package sk.uniba.gravity;
 public class Scale {
 
 	private double scale;
+	private double zoom = 1;
 
 	/**
 	 * The ratio of the linear dimension of the model to the same dimension of
@@ -15,6 +16,18 @@ public class Scale {
 		this.scale = scale;
 	}
 
+	public void zoom(double zoom) {
+		this.zoom *= zoom;
+	}
+
+	public double getZoom() {
+		return zoom;
+	}
+
+	public double getScale() {
+		return scale;
+	}
+
 	/**
 	 * Scale up to original.
 	 * 
@@ -23,7 +36,7 @@ public class Scale {
 	 * @return original / model
 	 */
 	public double up() {
-		return 1 / scale;
+		return 1 / (scale * zoom);
 	}
 
 	/**
@@ -34,6 +47,6 @@ public class Scale {
 	 * @return model / original
 	 */
 	public double down() {
-		return scale;
+		return scale * zoom;
 	}
 }

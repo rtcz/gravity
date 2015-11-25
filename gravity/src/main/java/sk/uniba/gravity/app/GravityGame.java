@@ -10,7 +10,6 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.GameBody;
 import sk.uniba.gravity.GameConstants;
-import sk.uniba.gravity.Scale;
 import sk.uniba.gravity.Vector2DUtils;
 import sk.uniba.gravity.game.InteractiveGame;
 
@@ -136,7 +135,7 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 		Vector2D zoomedRefPos = mouseRefPos.scalarMultiply(zoom);
 		Vector2D move = mouseRefPos.subtract(zoomedRefPos);
 
-		setMeterScale(new Scale(getMeterScale().down() * zoom));
+		getMeterScale().zoom(zoom);
 		setAbsRefPoint(getAbsRefPoint().subtract(move));
 	}
 }

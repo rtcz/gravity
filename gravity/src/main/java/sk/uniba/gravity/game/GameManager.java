@@ -14,7 +14,7 @@ public class GameManager {
 	public static final int DESIRED_FPS = GameConstants.DESIRED_FPS;
 	public static final int MIN_FPS = GameConstants.MIN_FPS;
 	public static final double MAX_LAG_MS = GameConstants.MAX_LAG_MS;
-	
+
 	public static final int MAX_UPDATE_SPEED = GameConstants.MAX_UPDATE_SPEED;
 
 	private static boolean syncUpdates = true;
@@ -110,10 +110,9 @@ public class GameManager {
 			if (currTime > updateTime) {
 				double delta = (currTime - lastTime);
 				lastTime = currTime;
-				// updateTime += deltaTime * (1 / speedMultiplier);
 				updateTime += deltaTime;
 				gameTime += delta * speedMultiplier;
-				
+
 				// TODO limit by actual delta game time
 				if (speedMultiplier > MAX_UPDATE_SPEED) {
 					for (int i = 0; i < speedMultiplier / MAX_UPDATE_SPEED; i++) {
@@ -144,12 +143,9 @@ public class GameManager {
 			} else {
 				// game is up to date, it has time to sleep now
 				int sleepTime = (int) (updateTime - currTime);
-				// safety check
-				if (sleepTime > 0) {
-					try {
-						Thread.sleep(sleepTime);
-					} catch (InterruptedException e) {}
-				}
+				try {
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {}
 			}
 		}
 

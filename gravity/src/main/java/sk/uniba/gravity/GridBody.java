@@ -14,6 +14,9 @@ public class GridBody {
 	private Scale pixelScale;
 	private double scale;
 
+	private Color bodyColor = Color.LIGHT_GRAY;
+	private Color trackColor = Color.ORANGE;
+
 	private int x;
 	private int y;
 
@@ -37,10 +40,10 @@ public class GridBody {
 		// pixel to meter scale
 		scale = meterScale.down() * pixelScale.up();
 
-		x = (int) ((body.getCenter().getX() - body.getRadius()) * scale);
-		y = (int) ((body.getCenter().getY() - body.getRadius()) * scale);
-		centerX = (int) (body.getCenter().getX() * scale);
-		centerY = (int) (body.getCenter().getY() * scale);
+		x = (int) ((body.getPosition().getX() - body.getRadius()) * scale);
+		y = (int) ((body.getPosition().getY() - body.getRadius()) * scale);
+		centerX = (int) (body.getPosition().getX() * scale);
+		centerY = (int) (body.getPosition().getY() * scale);
 		size = (int) (body.getSize() * scale);
 	}
 
@@ -67,7 +70,7 @@ public class GridBody {
 	public void drawTrajectory(Graphics2D g) {
 		g.setStroke(new BasicStroke((float) pixelScale.up()));
 
-		Color trackColor = Color.ORANGE;
+		Color trackColor = getTrackColor();
 		List<Vector2D> track = body.getTrack();
 		for (int i = 0; i + 1 < track.size(); i++) {
 			int x1 = (int) (track.get(i).getX() * scale);
@@ -102,32 +105,55 @@ public class GridBody {
 		int alpha = 255;
 		if (getSize() <= pixelScale.up()) {
 			double size = (body.getSize() * scale) / pixelScale.up();
-			// TODO compensate by zoom factor
 			// 1/2(sin(x*pi + 3/2*pi) + 1)
 			alpha *= Math.pow(0.5 * (Math.sin(size * Math.PI + 1.5 * Math.PI) + 1), 0.25);
+			if (alpha == 0) {
+				return;
+			}
 		}
 		g.setColor(new Color(255, 255, 255, alpha));
-		
-		int x = (int) (body.getCenter().getX() * meterScale.down());
-		int y = (int) (body.getCenter().getY() * meterScale.down());
-		
+
+		int x = (int) (body.getPosition().getX() * meterScale.down());
+		int y = (int) (body.getPosition().getY() * meterScale.down());
+
 		g.scale(pixelScale.up(), pixelScale.up());
 		g.drawString(body.getName(), x, y);
 		g.scale(pixelScale.down(), pixelScale.down());
 	}
 
 	public void drawBody(Graphics2D g) {
-		drawBody(g, Color.LIGHT_GRAY);
+		drawBody(g, getBodyColor(), false);
+	}
+	
+	public void drawBody(Graphics2D g, boolean particleOnly) {
+		drawBody(g, getBodyColor(), particleOnly);
 	}
 
-	public void drawBody(Graphics2D g, Color color) {
-		if (getSize() > pixelScale.up()) {
+	public void drawBody(Graphics2D g, Color color, boolean particleOnly) {
+		if (particleOnly || getSize() < pixelScale.up()) {
+			// make body visible as a pixel, if using particle mode or its smaller then pixel
+			g.setColor(Color.WHITE);
+			g.fillRect(getCenterX(), getCenterY(), (int) pixelScale.up(), (int) pixelScale.up());
+		} else {
 			g.setColor(color);
 			g.fillOval(getX(), getY(), getSize(), getSize());
-		} else {
-			// make body visible as a dot, if its too small
-			g.setColor(Color.WHITE);
-			g.fillRect(getX(), getY(), (int) pixelScale.up(), (int) pixelScale.up());
 		}
 	}
+
+	public Color getBodyColor() {
+		return bodyColor;
+	}
+
+	public void setBodyColor(Color bodyColor) {
+		this.bodyColor = bodyColor;
+	}
+
+	public Color getTrackColor() {
+		return trackColor;
+	}
+
+	public void setTrackColor(Color trackColor) {
+		this.trackColor = trackColor;
+	}
+
 }

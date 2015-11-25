@@ -19,10 +19,14 @@ public class Vector2DUtils {
 	public static Vector2D scalarDivide(Vector2D vector, double scalar) {
 		return new Vector2D(vector.getX() / scalar, vector.getY() / scalar);
 	}
+	
+	public static Vector2D scalarDivide(double scalar, Vector2D vector) {
+		return new Vector2D(scalar / vector.getX(), scalar / vector.getY());
+	}
 
 	public static boolean isPosInside(Circle circle, Vector2D pos) {
-		double dX = circle.getCenter().getX() - pos.getX();
-		double dY = circle.getCenter().getY() - pos.getY();
+		double dX = circle.getPosition().getX() - pos.getX();
+		double dY = circle.getPosition().getY() - pos.getY();
 		return Math.pow(dX, 2) + Math.pow(dY, 2) < Math.pow(circle.getRadius(), 2);
 	}
 }

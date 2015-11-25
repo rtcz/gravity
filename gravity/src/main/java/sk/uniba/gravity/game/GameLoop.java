@@ -8,7 +8,7 @@ public interface GameLoop {
 	 * @param game
 	 *            delta time since last update in milliseconds
 	 */
-	public void update(double delta);
+	public void update(double deltaMs);
 
 	public void render();
 

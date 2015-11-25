@@ -4,20 +4,12 @@ public class GameBody extends Body {
 
 	private boolean selected;
 
-	private boolean isColliding;
+	private double deltaTime;
 
 	public GameBody() {}
 
 	public GameBody(String name) {
 		setName(name);
-	}
-
-	public boolean isColliding() {
-		return isColliding;
-	}
-
-	public void setColliding(boolean isColliding) {
-		this.isColliding = isColliding;
 	}
 
 	public void setSelected(boolean selected) {
@@ -26,6 +18,18 @@ public class GameBody extends Body {
 
 	public boolean isSelected() {
 		return selected;
+	}
+
+	public boolean isNew() {
+		return deltaTime == 0;
+	}
+
+	public double getDeltaTime() {
+		return deltaTime;
+	}
+
+	public void setDeltaTime(double deltaTime) {
+		this.deltaTime = deltaTime;
 	}
 
 }

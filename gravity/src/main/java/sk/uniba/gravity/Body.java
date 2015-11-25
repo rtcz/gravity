@@ -7,7 +7,7 @@ import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.shape.Circle;
 
-public class Body extends Circle implements MassNode {
+public class Body extends Circle implements MassBody {
 
 	/**
 	 * Density of water 1000 kg/m3
@@ -17,7 +17,12 @@ public class Body extends Circle implements MassNode {
 	/**
 	 * m/s
 	 */
-	private Vector2D velocity = new Vector2D(0, 0);
+	private Vector2D velocity = Vector2D.ZERO;
+
+	/**
+	 * Force exerted on the body kg*m/s^2
+	 */
+	private Vector2D force = Vector2D.ZERO;
 
 	/**
 	 * kg/m^3
@@ -34,7 +39,7 @@ public class Body extends Circle implements MassNode {
 	private boolean tempTrajectoryPoint;
 
 	public Body() {
-		super(new Vector2D(0, 0), 0);
+		super(Vector2D.ZERO, 0);
 	}
 
 	/**
@@ -79,6 +84,50 @@ public class Body extends Circle implements MassNode {
 		return velocity;
 	}
 
+	public Vector2D getForce() {
+		return force;
+	}
+
+	public void addForce(MassBody body, double epsilon) {
+		Vector2D vDist12 = body.getPosition().subtract(getPosition());
+		double dist12 = vDist12.getNorm();
+
+		// gravitational force by Newton's law of universal
+		// gravitation F=G*m1*m2/r^2
+		double nominator = GameConstants.G_CONSTANT * getMass() * body.getMass();
+		// TODO add epsilon (gravitation softening parameter)
+		double denominator = Math.pow(dist12, 2) + Math.pow(epsilon, 2);
+		double sForce = nominator / denominator;
+
+		Vector2D unitVector = Vector2DUtils.scalarDivide(vDist12, dist12);
+		force = force.add(unitVector.scalarMultiply(sForce));
+	}
+
+	public void resetForce() {
+		this.force = Vector2D.ZERO;
+	}
+
+	/**
+	 * Leapfrog integration scheme. It is assumed that the actual velocity has
+	 * been calculated at t-Δt/2. Uses new velocity at t+Δt/2 to update position
+	 * to t+Δt.
+	 * 
+	 * @see http://www.wikiwand.com/en/Leapfrog_integration
+	 * 
+	 * @param deltaTime
+	 *            in seconds
+	 */
+	public void move(double deltaTime) {
+		// a=F/m | a0 = F0 / m
+		Vector2D acceleration = Vector2DUtils.scalarDivide(getForce(), getMass());
+		// v=a*t | v1 = v0 + a0*Δt
+		setVelocity(getVelocity().add(acceleration.scalarMultiply(deltaTime)));
+		// s=v*t | s1 = s0 + v1*Δt
+		setPosition(getPosition().add(getVelocity().scalarMultiply(deltaTime)));
+		// supplied force has been used
+		resetForce();
+	}
+
 	public String getName() {
 		if (name == null) {
 			return "Untitled Body";
@@ -91,24 +140,26 @@ public class Body extends Circle implements MassNode {
 	}
 
 	/**
-	 * Merge preserves volume of bodies
-	 * @param body to merge with
+	 * Merge preserves volume of bodies.
+	 * 
+	 * @param body
+	 *            to merge with
 	 */
 	public void merge(Body body) {
 		double sumMass = getMass() + body.getMass();
 		double sumVolume = getVolume() + body.getVolume();
-		
+
 		// move to barycenter
-		BarycenterNode barycenter = new BarycenterNode();
-		barycenter.addBody(this);
-		barycenter.addBody(body);
-		setCenter(barycenter.getCenter());
-		
-		// velocities are sumed
+		Barycenter barycenter = new Barycenter();
+		barycenter.add(this);
+		barycenter.add(body);
+		setPosition(barycenter.getPosition());
+
+		// calculate net velocity
 		Vector2D velocity1 = getVelocity().scalarMultiply(getMass() / sumMass);
 		Vector2D velocity2 = body.getVelocity().scalarMultiply(body.getMass() / sumMass);
 		setVelocity(velocity1.add(velocity2));
-		
+
 		// recalculate density and radius
 		setDensity(sumMass / sumVolume);
 		setRadius(Math.cbrt((3 * sumVolume) / (4 * Math.PI)));
@@ -138,13 +189,6 @@ public class Body extends Circle implements MassNode {
 		trajectory.add(point);
 		this.tempTrajectoryPoint = temp;
 	}
-
-	// public void limitTrack(int size) {
-	// if (trajectory.size() > size) {
-	// trajectory = trajectory.subList(trajectory.size() - size,
-	// trajectory.size() - 1);
-	// }
-	// }
 
 	public void clearTrack() {
 		trajectory.clear();

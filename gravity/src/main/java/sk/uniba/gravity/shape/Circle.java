@@ -16,11 +16,11 @@ public class Circle {
 		this(new Vector2D(centerX, centerY), radius);
 	}
 
-	public Vector2D getCenter() {
+	public Vector2D getPosition() {
 		return center;
 	}
 
-	public void setCenter(Vector2D center) {
+	public void setPosition(Vector2D center) {
 		this.center = center;
 	}
 
@@ -41,28 +41,29 @@ public class Circle {
 	 * @return true if bounding rectangles overlap
 	 */
 	public boolean isNear(Circle circle) {
+		// TODO test this method
 		double bothRadi = getRadius() + circle.getRadius();
-		return circle.getCenter().getX() < getCenter().getX() + bothRadi
-				&& getCenter().getX() < circle.getCenter().getX() + bothRadi
-				&& circle.getCenter().getY() < getCenter().getY() + bothRadi
-				&& getCenter().getY() < circle.getCenter().getY() + bothRadi;
+		return circle.getPosition().getX() < getPosition().getX() + bothRadi
+				&& getPosition().getX() < circle.getPosition().getX() + bothRadi
+				&& circle.getPosition().getY() < getPosition().getY() + bothRadi
+				&& getPosition().getY() < circle.getPosition().getY() + bothRadi;
 	}
 
 	/**
 	 * @param circle
 	 * @return true if circles intersect
 	 */
-	public boolean collides(Circle circle) {
-		double deltaX = getCenter().getX() - circle.getCenter().getX();
-		double deltaY = getCenter().getY() - circle.getCenter().getY();
+	public boolean isColliding(Circle circle) {
+		double deltaX = getPosition().getX() - circle.getPosition().getX();
+		double deltaY = getPosition().getY() - circle.getPosition().getY();
 		double bothRadi = getRadius() + circle.getRadius();
 		return Math.pow(deltaX, 2) + Math.pow(deltaY, 2) <= Math.pow(bothRadi, 2);
 	}
 
 	public Vector2D collisionPoint(Circle circle) {
 		double bothRadi = getRadius() + circle.getRadius();
-		double x = (getCenter().getX() * circle.getRadius() + circle.getCenter().getX() * getRadius()) / bothRadi;
-		double y = (getCenter().getY() * circle.getRadius() + circle.getCenter().getY() * getRadius()) / bothRadi;
+		double x = (getPosition().getX() * circle.getRadius() + circle.getPosition().getX() * getRadius()) / bothRadi;
+		double y = (getPosition().getY() * circle.getRadius() + circle.getPosition().getY() * getRadius()) / bothRadi;
 		return new Vector2D(x, y);
 	}
 }

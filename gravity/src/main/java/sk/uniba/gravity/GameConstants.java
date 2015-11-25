@@ -8,7 +8,7 @@ public final class GameConstants {
 	 * grid unit to pixel 1:10
 	 */
 	public static final double PIXEL_SCALE = 1e-1;
-	
+
 	/**
 	 * grid unit to meter 1:1000000
 	 */
@@ -33,8 +33,27 @@ public final class GameConstants {
 	 * Gravitational constant 6.674×10−11 N⋅m2/kg2
 	 */
 	public static final double G_CONSTANT = 6.674e-11;
-	
+
 	public static final int PROTODISK_SIZE = 100;
-	
+
 	public static final int MAX_UPDATE_SPEED = 10_000;
+	// public static final int MAX_UPDATE_SPEED = Integer.MAX_VALUE;
+
+	public static final double DELTA_TIME_CHANGE_FACTOR = 1.33;
+
+	/**
+	 * theta = 0 is for bruteforce
+	 */
+	public static final double BH_TREE_THETA = 0.5;
+
+	/**
+	 * Gravitational softening parameter. Distance in meters.
+	 */
+	public static final double EPSILON = 1e7;
+
+	/**
+	 * Maximal number of particles in "normal mode". Simulation is switched to
+	 * particle mode if more particles are simulated.
+	 */
+	public static final int PARTICLE_MODE_THRESHOLD = 100;
 }
