@@ -1,19 +1,18 @@
-package sk.uniba.gravity.app;
+package sk.uniba.gravity.body;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
-import sk.uniba.gravity.GameBody;
-import sk.uniba.gravity.GameConstants;
+import sk.uniba.gravity.game.GameConstants;
 import sk.uniba.gravity.shape.Circle;
 
 public class GameBodyFactory {
 
 	private GameBodyFactory() {}
 	
-	public static List<GameBody> createProtoDisk(Circle circle) {
+	public static List<GameBody> createProtoDisk(Circle circle, double density, double radius) {
 		List<GameBody> bodies = new ArrayList<GameBody>();
 		
 		for (int i = 0; i < GameConstants.PROTODISK_SIZE; i++) {
@@ -24,8 +23,8 @@ public class GameBodyFactory {
 			Vector2D bodyCenter = circle.getPosition().add(new Vector2D(x, y));
 
 			GameBody body = new GameBody("Planet " + (i + 1));
-			body.setRadius(1.0e6);
-			body.setDensity(1000);
+			body.setRadius(radius);
+			body.setDensity(density);
 			body.setPosition(bodyCenter);
 			// TODO add velocity
 			// body.setVelocity(new Vector2D(+3.879081706909912e4,

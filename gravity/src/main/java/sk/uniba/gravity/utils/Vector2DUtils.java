@@ -1,4 +1,4 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.utils;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import sk.uniba.gravity.shape.Circle;

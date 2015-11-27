@@ -1,4 +1,4 @@
-package sk.uniba.gravity.game;
+package sk.uniba.gravity.commons;
 
 
 public class UpdatesPerSecond {

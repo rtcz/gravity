@@ -1,16 +1,14 @@
 package sk.uniba.gravity;
 
-import sk.uniba.gravity.app.GravityGame;
-import sk.uniba.gravity.game.GameManager;
+import sk.uniba.gravity.game.GameFrame;
+import sk.uniba.gravity.game.GravityGame;
 
 public class Main {
 
 	public static void main(String[] args) {
-		GameManager manager = new GameManager(new GravityGame());
-		manager.setTitle("Hra hier");
-		manager.setDisplayMode(1280, 1024, false);
-		//manager.setDisplayMode(1280, 1024, true);
-		manager.run();
+		GameFrame frame = new GameFrame(new GravityGame());
+		frame.setTitle("Gravity2D");
+		frame.run();
 	}
 
 }

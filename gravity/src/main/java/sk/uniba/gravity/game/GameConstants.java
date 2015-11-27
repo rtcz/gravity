@@ -1,4 +1,4 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.game;
 
 public final class GameConstants {
 
@@ -12,7 +12,7 @@ public final class GameConstants {
 	/**
 	 * grid unit to meter 1:1000000
 	 */
-	public static final double METER_SCALE = 1e-6;
+	public static final double METER_SCALE = 1e-5;
 
 	public static final int WINDOW_WIDTH = 800;
 	public static final int WINDOW_HEIGHT = 600;
@@ -34,7 +34,7 @@ public final class GameConstants {
 	 */
 	public static final double G_CONSTANT = 6.674e-11;
 
-	public static final int PROTODISK_SIZE = 100;
+	public static final int PROTODISK_SIZE = 1000;
 
 	public static final int MAX_UPDATE_SPEED = 10_000;
 	// public static final int MAX_UPDATE_SPEED = Integer.MAX_VALUE;
@@ -55,5 +55,5 @@ public final class GameConstants {
 	 * Maximal number of particles in "normal mode". Simulation is switched to
 	 * particle mode if more particles are simulated.
 	 */
-	public static final int PARTICLE_MODE_THRESHOLD = 100;
+	public static final int PARTICLE_MODE_THRESHOLD = 3001;
 }

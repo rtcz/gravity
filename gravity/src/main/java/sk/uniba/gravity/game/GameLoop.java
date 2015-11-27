@@ -2,7 +2,7 @@ package sk.uniba.gravity.game;
 
 public interface GameLoop {
 
-	public void init(GameManager mng);
+	public void init(GameFrame mng);
 
 	/**
 	 * @param game

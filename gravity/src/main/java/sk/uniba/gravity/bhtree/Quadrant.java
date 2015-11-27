@@ -4,7 +4,7 @@ import java.awt.Graphics2D;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
-import sk.uniba.gravity.Scale;
+import sk.uniba.gravity.commons.Scale;
 
 public class Quadrant {
 

@@ -1,4 +1,4 @@
-package sk.uniba.gravity.app;
+package sk.uniba.gravity.game;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -8,10 +8,8 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
-import sk.uniba.gravity.GameBody;
-import sk.uniba.gravity.GameConstants;
-import sk.uniba.gravity.Vector2DUtils;
-import sk.uniba.gravity.game.InteractiveGame;
+import sk.uniba.gravity.body.GameBody;
+import sk.uniba.gravity.utils.Vector2DUtils;
 
 public class GravityGame extends GravityCanvas implements InteractiveGame {
 
@@ -86,7 +84,6 @@ public class GravityGame extends GravityCanvas implements InteractiveGame {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-
 	}
 
 	@Override

@@ -4,11 +4,11 @@ import java.awt.Graphics2D;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
-import sk.uniba.gravity.Barycenter;
-import sk.uniba.gravity.Body;
-import sk.uniba.gravity.GameConstants;
-import sk.uniba.gravity.MassBody;
-import sk.uniba.gravity.Scale;
+import sk.uniba.gravity.body.Barycenter;
+import sk.uniba.gravity.body.Body;
+import sk.uniba.gravity.body.MassBody;
+import sk.uniba.gravity.commons.Scale;
+import sk.uniba.gravity.game.GameConstants;
 
 /**
  * Barnes-Hut Tree Quadrant

@@ -1,11 +1,13 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.body;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
+import sk.uniba.gravity.game.GameConstants;
 import sk.uniba.gravity.shape.Circle;
+import sk.uniba.gravity.utils.Vector2DUtils;
 
 public class Body extends Circle implements MassBody {
 

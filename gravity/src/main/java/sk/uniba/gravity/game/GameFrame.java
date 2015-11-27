@@ -1,10 +1,18 @@
 package sk.uniba.gravity.game;
 
-import java.awt.BorderLayout;
-import javax.swing.JFrame;
-import sk.uniba.gravity.GameConstants;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
-public class GameManager {
+import javax.swing.JFrame;
+
+import sk.uniba.gravity.commons.UpdatesPerSecond;
+
+public class GameFrame extends JFrame implements KeyListener {
+
+	private static final long serialVersionUID = 8104184387340267764L;
 
 	public static final int WIDTH = GameConstants.WINDOW_WIDTH;
 	public static final int HEIGHT = GameConstants.WINDOW_HEIGHT;
@@ -25,15 +33,11 @@ public class GameManager {
 
 	private long gameTime;
 
-	private int width;
-
-	private int height;
-
-	private boolean fullscreen;
+	private boolean isFullscreen = false;
 
 	private int speedMultiplier = 1;
 
-	private JFrame window = new JFrame();
+	private GraphicsDevice device;
 
 	/**
 	 * desired duration of one game loop in miliseconds
@@ -42,10 +46,25 @@ public class GameManager {
 
 	private GameCanvas canvas;
 
-	public GameManager(GameCanvas canvas) {
+	public GameFrame(GameCanvas canvas) {
 		this.canvas = canvas;
-		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setDisplayMode(GameConstants.WINDOW_WIDTH, GameConstants.WINDOW_HEIGHT, false);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(GameConstants.WINDOW_WIDTH, GameConstants.WINDOW_HEIGHT);
+
+		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		device = env.getDefaultScreenDevice();
+
+		setWindowedMode();
+		setContentPane(canvas);
+		setVisible(true);
+		canvas.init(this);
+
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+			if (e.getID() == KeyEvent.KEY_PRESSED) {
+				keyPressed(e);
+			}
+			return true;
+		});
 	}
 
 	/**
@@ -64,35 +83,7 @@ public class GameManager {
 		syncRenders = flag;
 	}
 
-	public void setDisplayMode(int width, int height, boolean fullscreen) {
-		this.width = width;
-		this.height = height;
-		this.fullscreen = fullscreen;
-	}
-
-	private void init() {
-		window.setSize(width, height);
-		if (fullscreen) {
-			window.setUndecorated(true);
-			window.setExtendedState(JFrame.MAXIMIZED_BOTH);
-		} else {
-			// set window to center of the screen
-			window.setLocationRelativeTo(null);
-			window.setResizable(false);
-		}
-		window.setContentPane(canvas);
-		window.setLayout(new BorderLayout());
-		canvas.addContents();
-		window.setVisible(true);
-		canvas.init(this);
-	}
-
-	public void setTitle(String title) {
-		window.setTitle(title);
-	}
-
 	public void run() {
-		init();
 		double updateTime = getTime();
 		// double renderTime = getTime();
 		double lastTime = getTime();
@@ -180,5 +171,55 @@ public class GameManager {
 	 */
 	public long getTime() {
 		return System.nanoTime() / 1_000_000;
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+			System.exit(0);
+		} else if (e.getKeyCode() == KeyEvent.VK_F) {
+			if (device.isFullScreenSupported()) {
+				if (isFullscreen) {
+					setWindowedMode();
+				} else {
+					setFullScreenMode();
+				}
+				repaint();
+			}
+		}
+	}
+
+	private void setFullScreenMode() {
+		// Switch to fullscreen mode
+		dispose();
+		// setVisible(false);
+		setResizable(false);
+		setUndecorated(true);
+		device.setFullScreenWindow(this);
+		setVisible(true);
+		isFullscreen = true;
+	}
+
+	private void setWindowedMode() {
+		// Switch to windowed mode
+		dispose();
+		// setVisible(false);
+		setUndecorated(false);
+		setResizable(true);
+		device.setFullScreenWindow(null);
+		setVisible(true);
+		isFullscreen = false;
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+
 	}
 }

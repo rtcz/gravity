@@ -1,8 +1,8 @@
-package sk.uniba.gravity.app;
+package sk.uniba.gravity.game;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
@@ -11,34 +11,39 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
-import sk.uniba.gravity.Body;
-import sk.uniba.gravity.GameBody;
-import sk.uniba.gravity.GameConstants;
-import sk.uniba.gravity.Scale;
-import sk.uniba.gravity.Size;
-import sk.uniba.gravity.GridBody;
 import sk.uniba.gravity.bhtree.BHTQuadrant;
-import sk.uniba.gravity.game.GameCanvas;
-import sk.uniba.gravity.game.GameManager;
+import sk.uniba.gravity.body.Body;
+import sk.uniba.gravity.body.GameBody;
+import sk.uniba.gravity.body.GameBodyFactory;
+import sk.uniba.gravity.body.GridBody;
+import sk.uniba.gravity.commons.Scale;
+import sk.uniba.gravity.commons.Size;
+import sk.uniba.gravity.game.ui.JIntegerField;
 import sk.uniba.gravity.game.ui.SpeedSlider;
 import sk.uniba.gravity.shape.Arrow;
 import sk.uniba.gravity.shape.Circle;
 import sk.uniba.gravity.shape.Cross;
+import sk.uniba.gravity.utils.Benchmark;
+import sk.uniba.gravity.utils.Vector2DUtils;
 
 public class GravityCanvas extends GameCanvas {
 
 	private static final long serialVersionUID = -4662105822647187214L;
 
-	private GameManager mng;
+	public static final double RADIUS_FIELD_MULTIPLIER = 1e3;
+
+	private GameFrame mng;
 
 	private final List<GameBody> bodies = new ArrayList<GameBody>();
 
@@ -113,43 +118,58 @@ public class GravityCanvas extends GameCanvas {
 		radiusField.setText("1000");
 		radiusUnitLabel.setForeground(Color.WHITE);
 
-		addContents();
+		// addContents();
 	}
 
-	public void addContents() {
+	private void addContents() {
+		setLayout(new BorderLayout());
+
+		JPanel topPanel = new JPanel();
+		topPanel.setPreferredSize(new Dimension(0, 100));
+		topPanel.setOpaque(false);
+
+		topPanel.add(showTreeCheck);
+		topPanel.add(particleModeCheck);
+
+		topPanel.add(showTrackCheck);
+		topPanel.add(trackLimitCheck);
+		topPanel.add(showNameCheck);
+
+		topPanel.add(newBodyLabel);
+		topPanel.add(newBodyName);
+
+		topPanel.add(densityLabel);
+		topPanel.add(densityField);
+		topPanel.add(densityUnitLabel);
+
+		topPanel.add(radiusLabel);
+		topPanel.add(radiusField);
+		topPanel.add(radiusUnitLabel);
+
+		JPanel rightPanel = new JPanel();
+		rightPanel.setOpaque(false);
+
 		JPanel bottomPanel = new JPanel();
 		bottomPanel.setOpaque(false);
-		bottomPanel.setLayout(new FlowLayout());
 
 		bottomPanel.add(solSystem);
 		bottomPanel.add(protoDisk);
 		bottomPanel.add(clear);
 
-		bottomPanel.add(showTreeCheck);
-		bottomPanel.add(particleModeCheck);
-
-		bottomPanel.add(showTrackCheck);
-		bottomPanel.add(trackLimitCheck);
-		bottomPanel.add(showNameCheck);
-
 		bottomPanel.add(slider);
 
-		bottomPanel.add(newBodyLabel);
-		bottomPanel.add(newBodyName);
+		JPanel leftPanel = new JPanel();
+		leftPanel.setOpaque(false);
 
-		bottomPanel.add(densityLabel);
-		bottomPanel.add(densityField);
-		bottomPanel.add(densityUnitLabel);
-
-		bottomPanel.add(radiusLabel);
-		bottomPanel.add(radiusField);
-		bottomPanel.add(radiusUnitLabel);
-
+		add(topPanel, BorderLayout.NORTH);
+		add(rightPanel, BorderLayout.EAST);
 		add(bottomPanel, BorderLayout.SOUTH);
+		add(leftPanel, BorderLayout.WEST);
 	}
 
 	@Override
-	public void init(GameManager mng) {
+	public void init(GameFrame mng) {
+		addContents();
 		this.mng = mng;
 
 		particleModeCheck.addChangeListener(event -> {
@@ -193,7 +213,9 @@ public class GravityCanvas extends GameCanvas {
 			double radius = Math.min(getWidth(), getHeight()) / 2 * getMeterScale().up();
 			Circle disk = new Circle(center, radius);
 			synchronized (this) {
-				bodies.addAll(GameBodyFactory.createProtoDisk(disk));
+				double bodyRadius = radiusField.getValue() * RADIUS_FIELD_MULTIPLIER;
+				double bodyDensity = densityField.getValue();
+				bodies.addAll(GameBodyFactory.createProtoDisk(disk, bodyDensity, bodyRadius));
 			}
 		});
 
@@ -208,15 +230,15 @@ public class GravityCanvas extends GameCanvas {
 
 		// TODO remove
 		// TEST
-		GameBody major = new GameBody("Major");
-		major.setRadius(10e6);
-		bodies.add(major);
-
-		GameBody minor1 = new GameBody("Minor1");
-		minor1.setRadius(1e6);
-		minor1.setPosition(new Vector2D(12e6, 0));
-		minor1.setVelocity(new Vector2D(0, -6e3));
-		bodies.add(minor1);
+		// GameBody major = new GameBody("Major");
+		// major.setRadius(10e6);
+		// bodies.add(major);
+		//
+		// GameBody minor1 = new GameBody("Minor1");
+		// minor1.setRadius(1e6);
+		// minor1.setPosition(new Vector2D(12e6, 0));
+		// minor1.setVelocity(new Vector2D(0, -6e3));
+		// bodies.add(minor1);
 
 		// mng.setSpeedMultiplier(10000);
 	}
@@ -225,7 +247,7 @@ public class GravityCanvas extends GameCanvas {
 	public synchronized void update(double deltaMs) {
 		double deltaSec = deltaMs / 1_000d;
 		hasSameDeltaTime(deltaSec);
-		
+
 		// Sanity auto switch
 		// TODO move to listener (observable size list needed)
 		if (bodies.size() > GameConstants.PARTICLE_MODE_THRESHOLD) {
@@ -262,56 +284,92 @@ public class GravityCanvas extends GameCanvas {
 			// removal of collided bodies
 			for (Body body : collisionList) {
 				bodies.remove(body);
-			}	
+			}
 		}
 
-		// TODO use adaptive root size
-		tree = new BHTQuadrant(Vector2D.ZERO, 1e8);
+		double minY = Double.POSITIVE_INFINITY;
+		double maxY = Double.NEGATIVE_INFINITY;
+		double minX = Double.POSITIVE_INFINITY;
+		double maxX = Double.NEGATIVE_INFINITY;
+		for (Body body : bodies) {
+			double x = body.getPosition().getX();
+			double y = body.getPosition().getY();
+			if (x < minX) {
+				minX = x - 1;
+			}
+			if (x > maxX) {
+				maxX = x + 1;
+			}
+			if (y < minY) {
+				minY = y - 1;
+			}
+			if (y > maxY) {
+				maxY = y + 1;
+			}
+		}
+		double size = Math.max(maxX - minX, maxY - minY);
+		Vector2D rootPos = new Vector2D((maxX + minX) / 2, (maxY + minY) / 2);
+
+		// Benchmark.resetCounter();
+		tree = new BHTQuadrant(rootPos, size);
 		for (Body body : bodies) {
 			// construct Barnes-Hut tree
 			if (tree.isInside(body)) {
 				tree.insert(body);
 			} else {
-				throw new RuntimeException("Tree is too small");
+				throw new RuntimeException("Body is out of bounds");
 			}
-		}
-		
-		for (Body body : bodies) {
-			// calculate net force
-			if (particleModeCheck.isSelected()) {
-				tree.assignForce(body, GameConstants.EPSILON);
-			} else {
-				tree.assignForce(body);
-			}
-			
-			// update position
-			body.move(deltaSec);
 
-			// TODO trajectory
-			// lower velocity = less points
-			// higher velocity = more points
-			// no time step dependence
-			if (showTrackCheck.isSelected()) {
-				if (body.getTrack().isEmpty()) {
-					body.addTrackPoint(body.getPosition());
+		}
+
+		Benchmark.start();
+		// TODO test cached pool
+		ExecutorService executor = Executors.newWorkStealingPool();
+
+		for (Body body : bodies) {
+			executor.execute(() -> {
+				// calculate net force
+				if (particleModeCheck.isSelected()) {
+					tree.assignForce(body, GameConstants.EPSILON);
 				} else {
-					// Vector2D prevPos = body.getLastTrackPoint();
-					// if (prevPos.distance(newCenter) >
-					// body.getVelocity().getNorm()) {
-					// body.addTrackPoint(newCenter);
-					// } else {
-					// body.addTrackPoint(newCenter, true);
-					// }
-					body.addTrackPoint(body.getPosition());
+					tree.assignForce(body);
 				}
-				if (trackLimitCheck.isSelected()) {
-					while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
-						// TODO use better way to slice array
-						body.getTrack().remove(0);
+
+				// update position
+				body.move(deltaSec);
+
+				// TODO trajectory
+				// lower velocity = less points
+				// higher velocity = more points
+				// no time step dependence
+				if (showTrackCheck.isSelected()) {
+					if (body.getTrack().isEmpty()) {
+						body.addTrackPoint(body.getPosition());
+					} else {
+						// Vector2D prevPos = body.getLastTrackPoint();
+						// if (prevPos.distance(newCenter) >
+						// body.getVelocity().getNorm()) {
+						// body.addTrackPoint(newCenter);
+						// } else {
+						// body.addTrackPoint(newCenter, true);
+						// }
+						body.addTrackPoint(body.getPosition());
+					}
+					if (trackLimitCheck.isSelected()) {
+						while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
+							// TODO use better way to slice array
+							body.getTrack().remove(0);
+						}
 					}
 				}
-			}
+			});
 		}
+
+		executor.shutdown();
+		try {
+			executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {}
+		Benchmark.stop();
 	}
 
 	public int counter;
@@ -374,7 +432,7 @@ public class GravityCanvas extends GameCanvas {
 
 		if (showTreeCheck.isSelected()) {
 			gg.setColor(Color.GREEN);
-			tree.draw(gg, meterScale);	
+			tree.draw(gg, meterScale);
 		}
 
 		gg.scale(pixelScale.down(), pixelScale.down());
@@ -433,6 +491,12 @@ public class GravityCanvas extends GameCanvas {
 
 		g.drawString("Body count " + bodies.size(), 10, 120);
 
+		// benchmark info
+		g.drawString("Recorded " + Benchmark.getResult() + "ms", 10, 240);
+		g.drawString("Recorded Max. " + Benchmark.getMax() + "ms", 10, 260);
+		// g.drawString("Counted " + Benchmark.getCount(), 10, 280);
+		// g.drawString("Counted Max. " + Benchmark.getMaxCount(), 10, 300);
+
 		// reference cross
 		g.setColor(Color.WHITE);
 		Cross reference = new Cross(absRefPoint, 10);
@@ -450,14 +514,21 @@ public class GravityCanvas extends GameCanvas {
 		newBody.setPosition(center);
 
 		Vector2D vVector = firstDragPos.subtract(lastDragPos);
-		Vector2D velocity = vVector.scalarMultiply(vVector.getNorm());
-		newBody.setVelocity(velocity);
-
+		double norm = vVector.getNorm();
+		if (norm > 0) {
+			double speed = Math.pow(norm, 2) * 0.5;
+			Vector2D unitVector = Vector2DUtils.scalarDivide(vVector, norm);
+			newBody.setVelocity(unitVector.scalarMultiply(speed));
+		}
 		newBody.setName(newBodyName.getText());
 		newBody.setDensity(densityField.getValue());
-		newBody.setRadius(radiusField.getValue() * 1e3);
+		newBody.setRadius(radiusField.getValue() * RADIUS_FIELD_MULTIPLIER);
 
 		bodies.add(newBody);
+	}
+
+	protected GameFrame getFrame() {
+		return mng;
 	}
 
 	protected Vector2D getAbsRefPoint() {

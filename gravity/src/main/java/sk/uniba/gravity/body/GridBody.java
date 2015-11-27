@@ -1,4 +1,4 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.body;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -6,6 +6,8 @@ import java.awt.Graphics2D;
 import java.util.List;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+
+import sk.uniba.gravity.commons.Scale;
 
 public class GridBody {
 

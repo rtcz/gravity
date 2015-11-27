@@ -1,4 +1,4 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.commons;
 
 public class Scale {
 

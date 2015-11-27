@@ -1,4 +1,4 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.body;
 
 public class GameBody extends Body {
 

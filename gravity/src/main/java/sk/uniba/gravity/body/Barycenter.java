@@ -1,6 +1,8 @@
-package sk.uniba.gravity;
+package sk.uniba.gravity.body;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+
+import sk.uniba.gravity.utils.Vector2DUtils;
 
 public class Barycenter implements MassBody {
 

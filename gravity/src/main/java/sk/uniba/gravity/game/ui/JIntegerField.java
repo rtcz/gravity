@@ -1,4 +1,4 @@
-package sk.uniba.gravity.app;
+package sk.uniba.gravity.game.ui;
 
 import javax.swing.JTextField;
 import javax.swing.text.AttributeSet;
