@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -42,6 +43,14 @@ public class GravityCanvas extends GameCanvas {
 	private static final long serialVersionUID = -4662105822647187214L;
 
 	public static final double RADIUS_FIELD_MULTIPLIER = 1e3;
+	
+	public enum DiskRotation {
+		STATIC, CONSTANT, DIFFERENTIAL
+	}
+	
+	public enum DiskDistro {
+		UNIFORM, SQUARE, NORMAL
+	}
 
 	private GameFrame mng;
 
@@ -57,6 +66,8 @@ public class GravityCanvas extends GameCanvas {
 
 	private JButton solSystem = new JButton("Sol System");
 	private JButton protoDisk = new JButton("Proto Disk");
+	private JComboBox<DiskRotation> diskRotation = new JComboBox<DiskRotation>(DiskRotation.values());
+	private JComboBox<DiskDistro> diskDistro = new JComboBox<DiskDistro>(DiskDistro.values());
 	private JButton clear = new JButton("Clear");
 
 	private JCheckBox showTreeCheck = new JCheckBox("Show BH Tree");
@@ -154,6 +165,8 @@ public class GravityCanvas extends GameCanvas {
 
 		bottomPanel.add(solSystem);
 		bottomPanel.add(protoDisk);
+		bottomPanel.add(diskRotation);
+		bottomPanel.add(diskDistro);
 		bottomPanel.add(clear);
 
 		bottomPanel.add(slider);
@@ -215,7 +228,12 @@ public class GravityCanvas extends GameCanvas {
 			synchronized (this) {
 				double bodyRadius = radiusField.getValue() * RADIUS_FIELD_MULTIPLIER;
 				double bodyDensity = densityField.getValue();
-				bodies.addAll(GameBodyFactory.createProtoDisk(disk, bodyDensity, bodyRadius));
+				Body body = new Body();
+				body.setDensity(bodyDensity);
+				body.setRadius(bodyRadius);
+				DiskRotation rotation = (DiskRotation) diskRotation.getSelectedItem();
+				DiskDistro distro = (DiskDistro) diskDistro.getSelectedItem();
+				bodies.addAll(GameBodyFactory.createProtoDisk(disk, body, rotation, distro));
 			}
 		});
 

@@ -2,29 +2,57 @@ package sk.uniba.gravity.body;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.game.GameConstants;
+import sk.uniba.gravity.game.GravityCanvas.DiskDistro;
+import sk.uniba.gravity.game.GravityCanvas.DiskRotation;
 import sk.uniba.gravity.shape.Circle;
 
 public class GameBodyFactory {
 
 	private GameBodyFactory() {}
 	
-	public static List<GameBody> createProtoDisk(Circle circle, double density, double radius) {
+	public static List<GameBody> createProtoDisk(Circle circle, Body template, DiskRotation rotation, DiskDistro distro) {
 		List<GameBody> bodies = new ArrayList<GameBody>();
+		Random rnd = new Random();
+		
+		double x = 0;
+		double y = 0;
+		double angle;
 		
 		for (int i = 0; i < GameConstants.PROTODISK_SIZE; i++) {
-			double distance = circle.getRadius() * Math.sqrt(Math.random());
-			double angle = 2 * Math.PI * Math.random();
-			double x = distance * Math.cos(angle);
-			double y = distance * Math.sin(angle);
+			double distance = 0;
+			switch (distro) {
+				case UNIFORM:
+					distance = circle.getRadius() * Math.sqrt(rnd.nextDouble());
+					angle = 2 * Math.PI * rnd.nextDouble();
+					x = distance * Math.cos(angle);
+					y = distance * Math.sin(angle);
+					break;
+				case SQUARE:
+					distance = circle.getRadius() * rnd.nextDouble();
+					angle = 2 * Math.PI * rnd.nextDouble();
+					x = distance * Math.cos(angle);
+					y = distance * Math.sin(angle);
+					break;
+				case NORMAL:
+					double[] means = new double[] {0, 0};
+					double[][] covariances = new double[][] {{1,0}, {0,1}};
+					MultivariateNormalDistribution distr = new MultivariateNormalDistribution(means, covariances);
+					double[] sample = distr.sample();;
+					x = sample[0];
+					y = sample[1];
+					break;
+			}			
 			Vector2D bodyCenter = circle.getPosition().add(new Vector2D(x, y));
 
 			GameBody body = new GameBody("Planet " + (i + 1));
-			body.setRadius(radius);
-			body.setDensity(density);
+			body.setRadius(template.getRadius());
+			body.setDensity(template.getDensity());
 			body.setPosition(bodyCenter);
 			// TODO add velocity
 			// body.setVelocity(new Vector2D(+3.879081706909912e4,
