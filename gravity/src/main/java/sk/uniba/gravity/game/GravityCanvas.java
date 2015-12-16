@@ -43,11 +43,11 @@ public class GravityCanvas extends GameCanvas {
 	private static final long serialVersionUID = -4662105822647187214L;
 
 	public static final double RADIUS_FIELD_MULTIPLIER = 1e3;
-	
+
 	public enum DiskRotation {
-		STATIC, CONSTANT, DIFFERENTIAL
+		NONE, DIFFERENTIAL
 	}
-	
+
 	public enum DiskDistro {
 		UNIFORM, SQUARE, NORMAL
 	}
@@ -165,7 +165,9 @@ public class GravityCanvas extends GameCanvas {
 
 		bottomPanel.add(solSystem);
 		bottomPanel.add(protoDisk);
+		// TODO add label
 		bottomPanel.add(diskRotation);
+		// TODO add label
 		bottomPanel.add(diskDistro);
 		bottomPanel.add(clear);
 

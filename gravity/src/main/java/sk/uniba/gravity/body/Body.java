@@ -90,13 +90,14 @@ public class Body extends Circle implements MassBody {
 		return force;
 	}
 
+	// TODO compute acceleration only (bypass pairwise force)
 	public void addForce(MassBody body, double epsilon) {
 		Vector2D vDist12 = body.getPosition().subtract(getPosition());
 		double dist12 = vDist12.getNorm();
 
 		// gravitational force by Newton's law of universal
 		// gravitation F=G*m1*m2/r^2
-		double nominator = GameConstants.G_CONSTANT * getMass() * body.getMass();
+		double nominator = GameConstants.G * getMass() * body.getMass();
 		// TODO add epsilon (gravitation softening parameter)
 		double denominator = Math.pow(dist12, 2) + Math.pow(epsilon, 2);
 		double sForce = nominator / denominator;

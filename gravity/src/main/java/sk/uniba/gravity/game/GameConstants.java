@@ -32,7 +32,7 @@ public final class GameConstants {
 	/**
 	 * Gravitational constant 6.674×10−11 N⋅m2/kg2
 	 */
-	public static final double G_CONSTANT = 6.674e-11;
+	public static final double G = 6.674e-11;
 
 	public static final int PROTODISK_SIZE = 1000;
 

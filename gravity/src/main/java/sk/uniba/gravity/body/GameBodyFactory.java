@@ -6,65 +6,98 @@ import java.util.Random;
 
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
-
 import sk.uniba.gravity.game.GameConstants;
 import sk.uniba.gravity.game.GravityCanvas.DiskDistro;
 import sk.uniba.gravity.game.GravityCanvas.DiskRotation;
 import sk.uniba.gravity.shape.Circle;
+import sk.uniba.gravity.utils.Vector2DUtils;
 
 public class GameBodyFactory {
 
 	private GameBodyFactory() {}
-	
-	public static List<GameBody> createProtoDisk(Circle circle, Body template, DiskRotation rotation, DiskDistro distro) {
+
+	public static List<GameBody> createProtoDisk(Circle circle, Body template, DiskRotation rotation,
+			DiskDistro distro) {
 		List<GameBody> bodies = new ArrayList<GameBody>();
 		Random rnd = new Random();
-		
+
+		double radius = 0;
+		double angle;
+
 		double x = 0;
 		double y = 0;
-		double angle;
-		
-		for (int i = 0; i < GameConstants.PROTODISK_SIZE; i++) {
-			double distance = 0;
-			switch (distro) {
-				case UNIFORM:
-					distance = circle.getRadius() * Math.sqrt(rnd.nextDouble());
-					angle = 2 * Math.PI * rnd.nextDouble();
-					x = distance * Math.cos(angle);
-					y = distance * Math.sin(angle);
-					break;
-				case SQUARE:
-					distance = circle.getRadius() * rnd.nextDouble();
-					angle = 2 * Math.PI * rnd.nextDouble();
-					x = distance * Math.cos(angle);
-					y = distance * Math.sin(angle);
-					break;
-				case NORMAL:
-					double[] means = new double[] {0, 0};
-					double[][] covariances = new double[][] {{1,0}, {0,1}};
-					MultivariateNormalDistribution distr = new MultivariateNormalDistribution(means, covariances);
-					double[] sample = distr.sample();;
-					x = sample[0];
-					y = sample[1];
-					break;
-			}			
-			Vector2D bodyCenter = circle.getPosition().add(new Vector2D(x, y));
 
+		double[] means = new double[] { 0, 0 };
+		double[][] covariances = new double[][] { { 1, 0 }, { 0, 1 } };
+		MultivariateNormalDistribution normal = new MultivariateNormalDistribution(means, covariances);
+
+		// create bodies
+		for (int i = 0; i < GameConstants.PROTODISK_SIZE; i++) {
 			GameBody body = new GameBody("Planet " + (i + 1));
 			body.setRadius(template.getRadius());
 			body.setDensity(template.getDensity());
-			body.setPosition(bodyCenter);
-			// TODO add velocity
-			// body.setVelocity(new Vector2D(+3.879081706909912e4,
-			// -4.110223749127960e4));
 			bodies.add(body);
+		}
+		// set positions
+		for (Body body : bodies) {
+			switch (distro) {
+				case UNIFORM:
+					radius = circle.getRadius() * Math.sqrt(rnd.nextDouble());
+					angle = 2 * Math.PI * rnd.nextDouble();
+					x = radius * Math.cos(angle);
+					y = radius * Math.sin(angle);
+					break;
+				case SQUARE:
+					radius = circle.getRadius() * rnd.nextDouble();
+					angle = 2 * Math.PI * rnd.nextDouble();
+					x = radius * Math.cos(angle);
+					y = radius * Math.sin(angle);
+					break;
+				case NORMAL:
+					double[] sample = normal.sample();
+					x = sample[0] * circle.getRadius() * 0.33;
+					y = sample[1] * circle.getRadius() * 0.33;
+					break;
+			}
+			body.setPosition(new Vector2D(x, y));
+		}
+		// TODO ? sort by radius, then add one by one to innerMass (O(n^2) ->
+		// O(n*logn))
+		// set velocities
+		for (Body b1 : bodies) {
+			double r1 = b1.getPosition().getNorm();
+			double r2 = 0;
+			double speed = 0;
+			double innerMass = 0;
+			Vector2D direction = Vector2D.ZERO;
+
+			switch (rotation) {
+				case NONE:
+					break;
+				case DIFFERENTIAL:
+					for (Body b2 : bodies) {
+						r2 = b2.getPosition().getNorm();
+						if (r2 < r1) {
+							innerMass += b2.getMass();
+						}
+					}
+					speed = Math.sqrt(GameConstants.G * innerMass / r1);
+					direction = Vector2DUtils.scalarDivide(b1.getPosition(), r1);
+					direction = Vector2DUtils.rotate(direction, -90);
+					b1.setVelocity(direction.scalarMultiply(speed));
+					break;
+			}
+		}
+		// move disk to game coordinates
+		for (Body body : bodies) {
+			body.setPosition(circle.getPosition().add(body.getPosition()));
 		}
 		return bodies;
 	}
-	
+
 	public static List<GameBody> createSolSystem() {
 		List<GameBody> bodies = new ArrayList<GameBody>();
-		
+
 		GameBody sun = new GameBody("Sun");
 		sun.setRadius(696.342e6);
 		sun.setDensity(1408);
@@ -177,7 +210,7 @@ public class GameBodyFactory {
 		triton.setPosition(new Vector2D(-2.327179260794316e12, -3.890919849469012e12));
 		triton.setVelocity(new Vector2D(-1.879934244840464e3, +5.818844541445264e3));
 		bodies.add(triton);
-		
+
 		return bodies;
 	}
 }

@@ -60,6 +60,12 @@ public class Circle {
 		return Math.pow(deltaX, 2) + Math.pow(deltaY, 2) <= Math.pow(bothRadi, 2);
 	}
 
+	public boolean isInside(Vector2D point) {
+		double deltaX = getPosition().getX() - point.getX();
+		double deltaY = getPosition().getY() - point.getY();
+		return Math.pow(deltaX, 2) + Math.pow(deltaY, 2) <= Math.pow(getRadius(), 2);
+	}
+
 	public Vector2D collisionPoint(Circle circle) {
 		double bothRadi = getRadius() + circle.getRadius();
 		double x = (getPosition().getX() * circle.getRadius() + circle.getPosition().getX() * getRadius()) / bothRadi;
