@@ -15,12 +15,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
+
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import sk.uniba.gravity.bhtree.BHTQuadrant;
@@ -65,9 +70,17 @@ public class GravityCanvas extends GameCanvas {
 	private final Scale pixelScale = new Scale(GameConstants.PIXEL_SCALE);
 
 	private JButton solSystem = new JButton("Sol System");
-	private JButton protoDisk = new JButton("Proto Disk");
+
+	private JButton protoDisk = new JButton("Create");
+
+	private JLabel rotationLabel = new JLabel("Rotation");
 	private JComboBox<DiskRotation> diskRotation = new JComboBox<DiskRotation>(DiskRotation.values());
+
+	private JLabel distroLabel = new JLabel("Distribution");
 	private JComboBox<DiskDistro> diskDistro = new JComboBox<DiskDistro>(DiskDistro.values());
+
+	private JPanel protoGroup = new JPanel();
+
 	private JButton clear = new JButton("Clear");
 
 	private JCheckBox showTreeCheck = new JCheckBox("Show BH Tree");
@@ -76,7 +89,7 @@ public class GravityCanvas extends GameCanvas {
 	private JCheckBox trackLimitCheck = new JCheckBox("Limit Tracks");
 	private JCheckBox showNameCheck = new JCheckBox("Show Names");
 
-	private JLabel newBodyLabel = new JLabel("New Body");
+	private JLabel newBodyLabel = new JLabel("Title");
 	private JTextField newBodyName = new JTextField();
 
 	private JLabel densityLabel = new JLabel("Density");
@@ -86,6 +99,8 @@ public class GravityCanvas extends GameCanvas {
 	private JLabel radiusLabel = new JLabel("Radius");
 	private JIntegerField radiusField = new JIntegerField();
 	private JLabel radiusUnitLabel = new JLabel("km");
+
+	private JPanel newBodyGroup = new JPanel();
 
 	private SpeedSlider slider = new SpeedSlider();
 
@@ -99,6 +114,8 @@ public class GravityCanvas extends GameCanvas {
 		setDoubleBuffered(true);
 		setFocusable(true);
 		setBackground(Color.BLACK);
+
+		// panel.setBorder(BorderFactory.createTitledBorder(name));
 
 		showTreeCheck.setOpaque(false);
 		showTreeCheck.setForeground(Color.WHITE);
@@ -129,7 +146,23 @@ public class GravityCanvas extends GameCanvas {
 		radiusField.setText("1000");
 		radiusUnitLabel.setForeground(Color.WHITE);
 
+		newBodyGroup.setBorder(getBorder("New Body"));
+		newBodyGroup.setForeground(Color.WHITE);
+		newBodyGroup.setOpaque(false);
+
+		rotationLabel.setForeground(Color.WHITE);
+		distroLabel.setForeground(Color.WHITE);
+
+		protoGroup.setBorder(getBorder("Protodisk"));
+		protoGroup.setForeground(Color.WHITE);
+		protoGroup.setOpaque(false);
+
 		// addContents();
+	}
+
+	private Border getBorder(String title) {
+		return BorderFactory.createTitledBorder(null, title, TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, null,
+				Color.WHITE);
 	}
 
 	private void addContents() {
@@ -143,19 +176,20 @@ public class GravityCanvas extends GameCanvas {
 		topPanel.add(particleModeCheck);
 
 		topPanel.add(showTrackCheck);
-		topPanel.add(trackLimitCheck);
+		// topPanel.add(trackLimitCheck);
 		topPanel.add(showNameCheck);
 
-		topPanel.add(newBodyLabel);
-		topPanel.add(newBodyName);
-
-		topPanel.add(densityLabel);
-		topPanel.add(densityField);
-		topPanel.add(densityUnitLabel);
-
-		topPanel.add(radiusLabel);
-		topPanel.add(radiusField);
-		topPanel.add(radiusUnitLabel);
+		newBodyGroup.add(newBodyLabel);
+		newBodyGroup.add(newBodyName);
+		newBodyGroup.add(Box.createHorizontalStrut(10));
+		newBodyGroup.add(densityLabel);
+		newBodyGroup.add(densityField);
+		newBodyGroup.add(densityUnitLabel);
+		newBodyGroup.add(Box.createHorizontalStrut(10));
+		newBodyGroup.add(radiusLabel);
+		newBodyGroup.add(radiusField);
+		newBodyGroup.add(radiusUnitLabel);
+		topPanel.add(newBodyGroup);
 
 		JPanel rightPanel = new JPanel();
 		rightPanel.setOpaque(false);
@@ -164,11 +198,17 @@ public class GravityCanvas extends GameCanvas {
 		bottomPanel.setOpaque(false);
 
 		bottomPanel.add(solSystem);
-		bottomPanel.add(protoDisk);
-		// TODO add label
-		bottomPanel.add(diskRotation);
-		// TODO add label
-		bottomPanel.add(diskDistro);
+
+		protoGroup.add(protoDisk);
+		protoGroup.add(Box.createHorizontalStrut(10));
+		protoGroup.add(rotationLabel);
+		protoGroup.add(diskRotation);
+		protoGroup.add(Box.createHorizontalStrut(10));
+		protoGroup.add(distroLabel);
+		protoGroup.add(diskDistro);
+
+		bottomPanel.add(protoGroup);
+
 		bottomPanel.add(clear);
 
 		bottomPanel.add(slider);
@@ -375,12 +415,12 @@ public class GravityCanvas extends GameCanvas {
 						// }
 						body.addTrackPoint(body.getPosition());
 					}
-					if (trackLimitCheck.isSelected()) {
-						while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
-							// TODO use better way to slice array
-							body.getTrack().remove(0);
-						}
+					// if (trackLimitCheck.isSelected()) {
+					while (body.getTrack().size() > GameConstants.MAX_TRACK_SEGMENTS) {
+						// TODO use better way to slice array
+						body.getTrack().remove(0);
 					}
+					// }
 				}
 			});
 		}
@@ -512,8 +552,8 @@ public class GravityCanvas extends GameCanvas {
 		g.drawString("Body count " + bodies.size(), 10, 120);
 
 		// benchmark info
-		g.drawString("Recorded " + Benchmark.getResult() + "ms", 10, 240);
-		g.drawString("Recorded Max. " + Benchmark.getMax() + "ms", 10, 260);
+		// g.drawString("Recorded " + Benchmark.getResult() + "ms", 10, 240);
+		// g.drawString("Recorded Max. " + Benchmark.getMax() + "ms", 10, 260);
 		// g.drawString("Counted " + Benchmark.getCount(), 10, 280);
 		// g.drawString("Counted Max. " + Benchmark.getMaxCount(), 10, 300);
 

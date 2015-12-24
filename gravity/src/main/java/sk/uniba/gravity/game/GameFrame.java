@@ -62,6 +62,10 @@ public class GameFrame extends JFrame implements KeyListener {
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
 			if (e.getID() == KeyEvent.KEY_PRESSED) {
 				keyPressed(e);
+				return false;
+			} else if (e.getID() == KeyEvent.KEY_TYPED) {
+				keyTyped(e);
+				return false;
 			}
 			return true;
 		});
@@ -177,7 +181,7 @@ public class GameFrame extends JFrame implements KeyListener {
 	public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
 			System.exit(0);
-		} else if (e.getKeyCode() == KeyEvent.VK_F) {
+		} else if (e.getKeyCode() == KeyEvent.VK_F5) {
 			if (device.isFullScreenSupported()) {
 				if (isFullscreen) {
 					setWindowedMode();
