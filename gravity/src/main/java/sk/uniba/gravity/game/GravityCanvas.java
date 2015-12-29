@@ -355,16 +355,16 @@ public class GravityCanvas extends GameCanvas {
 			double x = body.getPosition().getX();
 			double y = body.getPosition().getY();
 			if (x < minX) {
-				minX = x - 1;
+				minX = x--;
 			}
 			if (x > maxX) {
-				maxX = x + 1;
+				maxX = x++;
 			}
 			if (y < minY) {
-				minY = y - 1;
+				minY = y--;
 			}
 			if (y > maxY) {
-				maxY = y + 1;
+				maxY = y++;
 			}
 		}
 		double size = Math.max(maxX - minX, maxY - minY);
